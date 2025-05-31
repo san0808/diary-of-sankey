@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="{{site.language}}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{#if pageTitle}}{{pageTitle}} | {{/if}}{{site.title}}</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="{{#if description}}{{description}}{{else}}{{site.description}}{{/if}}" />
+  <meta name="author" content="{{author.name}}" />
+  <link rel="canonical" href="{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="{{#if isPost}}article{{else}}website{{/if}}" />
+  <meta property="og:title" content="{{#if pageTitle}}{{pageTitle}}{{else}}{{site.title}}{{/if}}" />
+  <meta property="og:description" content="{{#if description}}{{description}}{{else}}{{site.description}}{{/if}}" />
+  <meta property="og:url" content="{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}" />
+  <meta property="og:site_name" content="{{site.title}}" />
+  {{#if featuredImage}}
+  <meta property="og:image" content="{{site.url}}{{featuredImage}}" />
+  {{/if}}
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{#if pageTitle}}{{pageTitle}}{{else}}{{site.title}}{{/if}}" />
+  <meta name="twitter:description" content="{{#if description}}{{description}}{{else}}{{site.description}}{{/if}}" />
+  {{#if author.social.twitter}}
+  <meta name="twitter:creator" content="{{author.social.twitter}}" />
+  {{/if}}
+  {{#if featuredImage}}
+  <meta name="twitter:image" content="{{site.url}}{{featuredImage}}" />
+  {{/if}}
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <!-- Stylesheets -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="/css/custom.css">
+  
+  <!-- Math Support -->
+  {{#if enableMath}}
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script
+    id="MathJax-script"
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+  ></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  {{/if}}
+  
+  <!-- Analytics -->
+  {{#if analytics.googleAnalyticsId}}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{analytics.googleAnalyticsId}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "{{analytics.googleAnalyticsId}}");
+  </script>
+  {{/if}}
+  
+  <!-- RSS Feed -->
+  <link rel="alternate" type="application/rss+xml" title="{{site.title}} RSS Feed" href="{{site.url}}/rss.xml" />
+  
+  <!-- JSON-LD Structured Data -->
+  {{#if isPost}}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "{{title}}",
+    "description": "{{description}}",
+    "author": {
+      "@type": "Person",
+      "name": "{{author.name}}"
+    },
+    "datePublished": "{{publishDate}}",
+    "dateModified": "{{lastEditedTime}}",
+    "publisher": {
+      "@type": "Person",
+      "name": "{{author.name}}"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{site.url}}{{canonicalPath}}"
+    }{{#if featuredImage}},
+    "image": "{{site.url}}{{featuredImage}}"{{/if}}
+  }
+  </script>
+  {{/if}}
+</head>
+
+<body class="bg-orange-100 w-full max-w-[90%] md:w-[{{#if isPost}}50{{else}}43{{/if}}%] mx-auto">
+  <!-- Navigation -->
+  <nav class="mt-6">
+    <div>
+      <h1 class="font-serif text-4xl">
+        <a href="/" class="hover:text-gray-700 transition-colors">{{site.title}}</a>
+      </h1>
+      <div class="mt-5 flex flex-wrap gap-5">
+        <a
+          href="/"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isHome}}font-semibold{{/if}}"
+        >Home</a>
+        <a
+          href="/blog"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isBlog}}font-semibold{{/if}}"
+        >Blog</a>
+        <a
+          href="/research-notes"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isResearch}}font-semibold{{/if}}"
+        >Research Notes</a>
+        <a
+          href="/math"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isMath}}font-semibold{{/if}}"
+        >Math</a>
+      </div>
+    </div>
+  </nav>
+
+  <hr class="mt-3" />
+
+  <!-- Main Content -->
+  <main>
+    {{{content}}}
+  </main>
+
+  <!-- Footer -->
+  <footer class="my-8 pt-8 border-t border-gray-300">
+    <div class="text-center text-gray-600 text-sm font-serif">
+      <p>© {{currentYear}} {{author.name}}. All rights reserved.</p>
+      <div class="mt-2 flex justify-center gap-4">
+        {{#if author.social.twitter}}
+        <a href="{{author.social.twitter}}" target="_blank" rel="noopener noreferrer" 
+           class="hover:text-gray-800 transition-colors">Twitter</a>
+        {{/if}}
+        {{#if author.social.github}}
+        <a href="https://github.com/{{author.social.github}}" target="_blank" rel="noopener noreferrer" 
+           class="hover:text-gray-800 transition-colors">GitHub</a>
+        {{/if}}
+        {{#if author.social.linkedin}}
+        <a href="https://linkedin.com/in/{{author.social.linkedin}}" target="_blank" rel="noopener noreferrer" 
+           class="hover:text-gray-800 transition-colors">LinkedIn</a>
+        {{/if}}
+        <a href="/rss.xml" class="hover:text-gray-800 transition-colors">RSS</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  {{#if enableSearch}}
+  <script>
+    // Simple client-side search functionality
+    function initializeSearch() {
+      // Implementation would go here
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeSearch);
+    } else {
+      initializeSearch();
+    }
+  </script>
+  {{/if}}
+
+  <!-- Service Worker -->
+  {{#if enableServiceWorker}}
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('SW registered: ', registration);
+          })
+          .catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+  {{/if}}
+</body>
+</html> 

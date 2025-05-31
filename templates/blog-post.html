@@ -1,0 +1,185 @@
+{{#if status}}
+{{#if (eq status 'Scheduled')}}
+<div class="bg-orange-200 border-l-4 border-orange-400 p-4 mb-6 rounded-r-lg">
+  <div class="flex items-center">
+    <span class="text-orange-600 mr-2">📅</span>
+    <div>
+      <p class="font-serif text-orange-800">
+        <strong>Scheduled Post</strong> - This post will be published on {{formatDate publishDate}}
+      </p>
+    </div>
+  </div>
+</div>
+{{/if}}
+{{/if}}
+
+<article class="blog-post mt-2">
+  <!-- Post Header -->
+  <header class="mb-8">
+    <h1 class="text-4xl mt-[57px] mb-3 font-serif">{{title}}</h1>
+    
+    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+      <span class="font-serif">{{formatDate publishDate}}</span>
+      {{#if readingTime}}
+      <span>{{readingTime}} min read</span>
+      {{/if}}
+      {{#if wordCount}}
+      <span>{{wordCount}} words</span>
+      {{/if}}
+      {{#if category}}
+      <span class="bg-orange-200 px-2 py-1 rounded">{{category}}</span>
+      {{/if}}
+    </div>
+
+    {{#if tags.length}}
+    <div class="flex flex-wrap gap-2 mb-4">
+      {{#each tags}}
+      <a href="/tag/{{slugify this}}" class="inline-block bg-gray-100 px-2 py-1 text-xs rounded hover:bg-orange-200 transition-colors">
+        {{this}}
+      </a>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if excerpt}}
+    <div class="text-lg text-gray-700 font-serif italic border-l-4 border-orange-300 pl-4 my-6">
+      {{excerpt}}
+    </div>
+    {{/if}}
+
+    {{#if featuredImage}}
+    <figure class="my-8">
+      <img src="{{featuredImage}}" alt="{{title}}" class="mx-auto rounded-lg shadow-md max-w-full h-auto" />
+    </figure>
+    {{/if}}
+  </header>
+
+  <!-- Table of Contents (if post is long enough) -->
+  {{#if tableOfContents.length}}
+  {{#if (gt tableOfContents.length 2)}}
+  <nav class="bg-white bg-opacity-60 border border-gray-200 rounded-lg p-4 mb-8 backdrop-blur-sm">
+    <h3 class="font-serif text-lg mb-3">Table of Contents</h3>
+    <ul class="space-y-1">
+      {{#each tableOfContents}}
+      <li class="{{#if (eq level 1)}}font-semibold{{/if}} {{#if (eq level 2)}}ml-4{{/if}} {{#if (eq level 3)}}ml-8{{/if}}">
+        <a href="{{anchor}}" class="text-blue-600 hover:text-blue-800 hover:underline text-sm">
+          {{text}}
+        </a>
+      </li>
+      {{/each}}
+    </ul>
+  </nav>
+  {{/if}}
+  {{/if}}
+
+  <!-- Post Content -->
+  <div class="prose prose-orange max-w-none">
+    {{{content}}}
+  </div>
+
+  <!-- Post Footer -->
+  <footer class="mt-16 pt-8 border-t border-gray-300">
+    <div class="flex justify-between items-center">
+      <div class="text-sm text-gray-600 font-serif">
+        {{#if lastEditedTime}}
+        Last updated: {{formatDate lastEditedTime}}
+        {{/if}}
+      </div>
+      
+      <div class="flex gap-4">
+        {{#if author.social.twitter}}
+        <a href="https://twitter.com/intent/tweet?text={{title}}&url={{site.url}}/{{category}}/{{slug}}&via={{author.social.twitter}}" 
+           target="_blank" rel="noopener noreferrer"
+           class="text-blue-600 hover:text-blue-800 text-sm">
+          Share on Twitter
+        </a>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Author Bio -->
+    <div class="mt-8 p-6 bg-white bg-opacity-50 rounded-lg border border-gray-200 backdrop-blur-sm">
+      <div class="flex items-start">
+        {{#if author.avatar}}
+        <img src="{{author.avatar}}" alt="{{author.name}}" class="w-16 h-16 rounded-full mr-4" />
+        {{else}}
+        <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full mr-4 flex items-center justify-center shadow-lg">
+          <span class="text-2xl font-serif text-white">{{substring author.name 0 1}}</span>
+        </div>
+        {{/if}}
+        
+        <div>
+          <h4 class="font-serif text-lg mb-2">{{author.name}}</h4>
+          <p class="text-gray-700 font-serif text-sm mb-3">{{author.bio}}</p>
+          
+          <div class="flex gap-3">
+            {{#if author.social.twitter}}
+            <a href="{{author.social.twitter}}" target="_blank" rel="noopener noreferrer" 
+               class="text-blue-600 hover:text-blue-800 text-sm">Twitter</a>
+            {{/if}}
+            {{#if author.social.github}}
+            <a href="https://github.com/{{author.social.github}}" target="_blank" rel="noopener noreferrer" 
+               class="text-blue-600 hover:text-blue-800 text-sm">GitHub</a>
+            {{/if}}
+            {{#if author.social.linkedin}}
+            <a href="https://linkedin.com/in/{{author.social.linkedin}}" target="_blank" rel="noopener noreferrer" 
+               class="text-blue-600 hover:text-blue-800 text-sm">LinkedIn</a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</article>
+
+<!-- Navigation to other posts -->
+{{#if (or prevPost nextPost)}}
+<nav class="mt-12 pt-8 border-t border-gray-200">
+  <div class="flex justify-between">
+    <div class="w-1/2 pr-4">
+      {{#if prevPost}}
+      <a href="/{{prevPost.category}}/{{prevPost.slug}}" class="block hover:bg-orange-50 p-4 rounded-lg transition-colors">
+        <div class="text-sm text-gray-600 mb-1">← Previous post</div>
+        <div class="font-serif">{{prevPost.title}}</div>
+      </a>
+      {{/if}}
+    </div>
+    
+    <div class="w-1/2 pl-4 text-right">
+      {{#if nextPost}}
+      <a href="/{{nextPost.category}}/{{nextPost.slug}}" class="block hover:bg-orange-50 p-4 rounded-lg transition-colors">
+        <div class="text-sm text-gray-600 mb-1">Next post →</div>
+        <div class="font-serif">{{nextPost.title}}</div>
+      </a>
+      {{/if}}
+    </div>
+  </div>
+</nav>
+{{/if}}
+
+<!-- Related posts -->
+{{#if relatedPosts.length}}
+<section class="mt-12 pt-8 border-t border-gray-200">
+  <h3 class="text-2xl font-serif mb-6">Related Posts</h3>
+  <div class="grid gap-6 md:grid-cols-2">
+    {{#each relatedPosts}}
+    <article class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <h4 class="font-serif text-lg mb-2">
+        <a href="/{{category}}/{{slug}}" class="hover:underline underline-offset-4">{{title}}</a>
+      </h4>
+      <p class="text-sm text-gray-600 mb-2">{{formatDate publishDate}} • {{readingTime}} min read</p>
+      {{#if excerpt}}
+      <p class="text-gray-700 font-serif text-sm">{{truncate excerpt 100}}</p>
+      {{/if}}
+    </article>
+    {{/each}}
+  </div>
+</section>
+{{/if}}
+
+<!-- Back to blog link -->
+<div class="mt-12 text-center">
+  <a href="/{{category}}" class="font-serif text-lg hover:underline underline-offset-4">
+    ← Back to {{category}}
+  </a>
+</div> 

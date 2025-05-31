@@ -1,0 +1,121 @@
+<section class="mt-8">
+  <h1 class="text-lg">
+    Hi, myself <span class="font-semibold">{{author.name}}</span>
+  </h1>
+  <h1 class="mt-4 text-lg">{{author.bio}}</h1>
+  
+  {{#if author.interests}}
+  <h1 class="mt-4 text-lg">{{author.interests}}</h1>
+  {{/if}}
+  
+  <h1 class="mt-4 text-lg">Here are my socials, if you are searching :)</h1>
+
+  <hr class="my-5" />
+
+  <div class="flex gap-5 mx-auto">
+    <div class="m flex flex-wrap gap-5">
+      {{#if author.social.twitter}}
+      <a
+        href="{{author.social.twitter}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 font-semibold"
+      >Twitter</a>
+      {{/if}}
+      
+      {{#if author.social.github}}
+      <a
+        href="https://github.com/{{author.social.github}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 font-semibold"
+      >Github</a>
+      {{/if}}
+      
+      {{#if author.social.linkedin}}
+      <a
+        href="https://linkedin.com/in/{{author.social.linkedin}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 font-semibold"
+      >LinkedIn</a>
+      {{/if}}
+    </div>
+  </div>
+</section>
+
+{{#if featuredPosts.length}}
+<section class="mt-12">
+  <h2 class="text-2xl font-serif mb-6">Featured Posts</h2>
+  <div class="space-y-4">
+    {{#each featuredPosts}}
+    <article class="border-b border-gray-200 pb-4">
+      <h3 class="text-xl font-serif mb-2">
+        <a href="/{{slugify category}}/{{slug}}" class="hover:underline underline-offset-4">{{title}}</a>
+      </h3>
+      <p class="text-gray-600 text-sm mb-2">{{formatDate publishDate}} • {{readingTime}} min read</p>
+      {{#if excerpt}}
+      <p class="font-serif text-gray-700">{{excerpt}}</p>
+      {{/if}}
+    </article>
+    {{/each}}
+  </div>
+  <div class="mt-6 text-center">
+    <a href="/blog" class="font-serif text-lg hover:underline underline-offset-4">View all posts →</a>
+  </div>
+</section>
+{{/if}}
+
+{{#if recentPosts.length}}
+<section class="mt-12">
+  <h2 class="text-2xl font-serif mb-6">Recent Posts</h2>
+  <div class="space-y-4">
+    {{#each recentPosts}}
+    <article class="border-b border-gray-200 pb-4">
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <h3 class="text-lg font-serif mb-1">
+            <a href="/{{slugify category}}/{{slug}}" class="hover:underline underline-offset-4">{{title}}</a>
+          </h3>
+          <p class="text-gray-600 text-sm mb-2">
+            {{formatDate publishDate}} • {{category}} • {{readingTime}} min read
+          </p>
+          {{#if excerpt}}
+          <p class="font-serif text-gray-700 text-sm">{{truncate excerpt 100}}</p>
+          {{/if}}
+        </div>
+        {{#if tags.length}}
+        <div class="ml-4">
+          {{#each tags}}
+          <span class="inline-block bg-orange-200 px-2 py-1 text-xs rounded mr-1 mb-1">{{this}}</span>
+          {{/each}}
+        </div>
+        {{/if}}
+      </div>
+    </article>
+    {{/each}}
+  </div>
+  <div class="mt-6 text-center">
+    <a href="/blog" class="font-serif text-lg hover:underline underline-offset-4">View all posts →</a>
+  </div>
+</section>
+{{/if}}
+
+{{#if scheduledPosts.length}}
+<section class="mt-12">
+  <h2 class="text-2xl font-serif mb-6">Coming Soon</h2>
+  <div class="space-y-4">
+    {{#each scheduledPosts}}
+    <article class="border border-orange-200 bg-orange-50 p-4 rounded-lg opacity-75">
+      <h3 class="text-lg font-serif mb-1">{{title}}</h3>
+      <p class="text-gray-600 text-sm mb-2">
+        <span class="font-medium">Publishing on:</span> {{formatDate publishDate}} • {{category}}
+      </p>
+      {{#if excerpt}}
+      <p class="font-serif text-gray-700 text-sm">{{excerpt}}</p>
+      {{/if}}
+    </article>
+    {{/each}}
+  </div>
+</section>
+{{/if}} 

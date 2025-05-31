@@ -1,0 +1,134 @@
+<div class="my-8">
+  {{#if categoryName}}
+  <div class="mb-6">
+    <h1 class="text-3xl font-serif mb-2">{{categoryName}}</h1>
+    {{#if categoryDescription}}
+    <p class="text-gray-600 font-serif">{{categoryDescription}}</p>
+    {{/if}}
+    <a href="/blog" class="text-sm text-blue-600 hover:underline">← All posts</a>
+  </div>
+  {{else}}
+  <div class="mb-6">
+    <h1 class="text-3xl font-serif mb-2">Blog</h1>
+    <p class="text-gray-600 font-serif">Personal thoughts and technical insights</p>
+  </div>
+  {{/if}}
+
+  {{#if posts.length}}
+  <ul class="list-none">
+    {{#each posts}}
+    <li class="border-b border-gray-200 last:border-b-0">
+      <a href="/{{slugify category}}/{{slug}}" class="post-link block py-3 hover:bg-orange-50 transition-colors">
+        <div class="flex justify-between items-center hover:underline underline-offset-4">
+          <span class="text-gray-500 w-[40%] font-serif">{{formatDate publishDate}}</span>
+          <div class="w-full">
+            <div class="font-mono text-lg">{{title}}</div>
+            {{#if excerpt}}
+            <div class="text-sm text-gray-600 font-serif mt-1">{{truncate excerpt 120}}</div>
+            {{/if}}
+            <div class="flex items-center mt-1 text-xs text-gray-500">
+              <span class="tag bg-orange-200 px-2 py-1 rounded mr-2">{{category}}</span>
+              <span>{{readingTime}} min read</span>
+              {{#if wordCount}}
+              <span class="ml-2">{{wordCount}} words</span>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        {{#if tags.length}}
+        <div class="mt-2 ml-[40%] pl-4">
+          {{#each tags}}
+          <span class="tag inline-block bg-gray-100 px-2 py-1 text-xs rounded mr-1 mb-1">{{this}}</span>
+          {{/each}}
+        </div>
+        {{/if}}
+      </a>
+    </li>
+    {{/each}}
+  </ul>
+
+  {{#if pagination}}
+  <div class="mt-8 flex justify-between items-center">
+    <div>
+      {{#if pagination.hasPrev}}
+      <a href="{{pagination.prevUrl}}" class="font-serif hover:underline underline-offset-4">← Newer posts</a>
+      {{/if}}
+    </div>
+    
+    <div class="text-sm text-gray-600 font-serif">
+      Page {{pagination.current}} of {{pagination.total}}
+    </div>
+    
+    <div>
+      {{#if pagination.hasNext}}
+      <a href="{{pagination.nextUrl}}" class="font-serif hover:underline underline-offset-4">Older posts →</a>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{else}}
+  <div class="text-center py-12">
+    {{#if categoryName}}
+    <p class="text-gray-600 font-serif text-lg">No {{categoryName}} posts yet.</p>
+    <p class="text-gray-500 font-serif text-sm mt-2">Check back later for content in this category!</p>
+    {{else}}
+    <p class="text-gray-600 font-serif text-lg">No posts found.</p>
+    {{/if}}
+    <a href="/blog" class="text-blue-600 hover:underline font-serif mt-4 inline-block">View all posts</a>
+  </div>
+  {{/if}}
+</div>
+
+{{#if showCategoriesFilter}}
+<div class="mt-8 pt-8 border-t border-gray-200">
+  <h3 class="text-lg font-serif mb-4">Browse by Category</h3>
+  <div class="flex flex-wrap gap-2">
+    <a href="/blog" class="category-button inline-block bg-orange-200 px-3 py-1 rounded hover:bg-orange-300 transition-colors font-serif text-sm {{#unless categoryName}}font-semibold{{/unless}}">
+      All Posts
+    </a>
+    <a href="/blog" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Blog')}}font-semibold bg-orange-200{{/if}}">
+      Blog (2)
+    </a>
+    <a href="/research-notes" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Research Notes')}}font-semibold bg-orange-200{{/if}}">
+      Research Notes (0)
+    </a>
+    <a href="/math" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Math')}}font-semibold bg-orange-200{{/if}}">
+      Math (0)
+    </a>
+  </div>
+</div>
+{{/if}}
+
+{{#if showTagsCloud}}
+<div class="mt-8 pt-8 border-t border-gray-200">
+  <h3 class="text-lg font-serif mb-4">Popular Tags</h3>
+  <div class="flex flex-wrap gap-2">
+    {{#each popularTags}}
+    <a href="/tag/{{slug}}" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
+      {{name}} ({{count}})
+    </a>
+    {{/each}}
+  </div>
+</div>
+{{/if}}
+
+{{#if showArchive}}
+<div class="mt-8 pt-8 border-t border-gray-200">
+  <h3 class="text-lg font-serif mb-4">Archive</h3>
+  <div class="space-y-2">
+    {{#each archive}}
+    <div>
+      <a href="/archive/{{year}}" class="font-serif hover:underline underline-offset-4">{{year}} ({{count}} posts)</a>
+      {{#if showMonths}}
+      <div class="ml-4 mt-1 space-y-1">
+        {{#each months}}
+        <a href="/archive/{{../year}}/{{month}}" class="block text-sm text-gray-600 hover:text-gray-800">{{monthName}} ({{count}})</a>
+        {{/each}}
+      </div>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+</div>
+{{/if}} 

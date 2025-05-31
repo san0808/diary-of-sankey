@@ -1,0 +1,132 @@
+/* Custom styles for Diary of Sankey */
+
+/* Improve hover states for better UX */
+.post-link:hover {
+  background-color: rgba(251, 146, 60, 0.1) !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Better tag styling */
+.tag {
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background-color: rgba(251, 146, 60, 0.7) !important;
+  transform: translateY(-1px);
+}
+
+/* Improved navigation hover effects */
+nav a {
+  transition: all 0.3s ease;
+}
+
+nav a:hover {
+  color: #f97316 !important;
+}
+
+/* Better button hover states */
+.category-button {
+  transition: all 0.2s ease;
+}
+
+.category-button:hover {
+  background-color: #fed7aa !important;
+  transform: translateY(-1px);
+}
+
+/* Smooth underline animation for links */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: #f97316;
+  transition: width 0.3s ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+} 
+
+/* ===== BLOG POST IMPROVEMENTS ===== */
+
+/* More subtle callout boxes in content */
+.prose div[class*="bg-orange-200"] {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-left: 4px solid #f97316 !important;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Better code styling - more comprehensive selectors */
+.prose code,
+code[class*="bg-gray-100"],
+.blog-post code {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace !important;
+  font-size: 0.875rem !important;
+  backdrop-filter: blur(5px);
+}
+
+/* Code blocks (pre elements) */
+.prose pre,
+.blog-post pre {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(5px);
+  padding: 16px !important;
+  border-radius: 8px !important;
+  overflow-x: auto;
+}
+
+.prose pre code,
+.blog-post pre code {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Improved hover effects for post navigation */
+.blog-post a[class*="hover:bg-orange-50"] {
+  transition: all 0.2s ease;
+}
+
+.blog-post a[class*="hover:bg-orange-50"]:hover {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Subtle Table of Contents styling */
+.blog-post nav[class*="bg-orange-50"] {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Better author avatar fallback */
+.blog-post div[class*="bg-orange-300"] {
+  background: linear-gradient(135deg, #f97316, #fb923c) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* Subtle author bio section */
+.blog-post div[class*="bg-orange-50"]:has(h4) {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(8px);
+} 

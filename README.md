@@ -39,7 +39,7 @@ A modern, Notion-powered blog system that preserves beautiful design while provi
 
 1. **Clone and Install**
    ```bash
-   git clone <your-repo-url>
+   https://github.com/san0808/diary-of-sankey.git
    cd diary-of-sankey
    npm install
    ```
@@ -109,9 +109,9 @@ NOTION_API_KEY=your_notion_integration_key
 NOTION_DATABASE_ID=your_database_id
 
 # Site Configuration
-SITE_URL=https://diary.devsanket.com
-AUTHOR_NAME=Sanket Bhat
-BLOG_TITLE=Diary of Sankey
+SITE_URL=https://diary.devsanket.com // write yours
+AUTHOR_NAME=Sanket Bhat // write yours
+BLOG_TITLE=Diary of Sankey // write yours
 
 # Optional: Analytics
 GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX

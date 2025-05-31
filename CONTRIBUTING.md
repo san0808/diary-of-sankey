@@ -14,7 +14,7 @@ Thank you for your interest in contributing to Diary of Sankey! This document pr
 1. **Fork the repository**
 2. **Clone your fork**
    ```bash
-   git clone https://github.com/yourusername/diary-of-sankey.git
+   git clone https://github.com/san0808/diary-of-sankey.git
    cd diary-of-sankey
    ```
 

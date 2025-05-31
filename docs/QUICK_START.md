@@ -6,7 +6,7 @@ Get your Notion-powered blog running in under 5 minutes! 🚀
 
 ### Step 1: Get the Code
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/san0808/diary-of-sankey.git
 cd diary-of-sankey
 npm install
 ```

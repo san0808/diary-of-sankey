@@ -8,7 +8,7 @@ Complete guide to deploy your Diary of Sankey blog on Vercel with automatic Noti
 
 1. **Push to GitHub** (if not already done):
    ```bash
-   git remote add origin https://github.com/yourusername/diary-of-sankey.git
+   git remote add origin https://github.com/san0808/diary-of-sankey.git
    git branch -M main
    git push -u origin main
    ```

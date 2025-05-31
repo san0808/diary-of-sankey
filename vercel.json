@@ -6,7 +6,6 @@
   "installCommand": "npm ci",
   "devCommand": "npm run dev",
   "framework": null,
-  "functions": {},
   "rewrites": [
     {
       "source": "/blog/:slug",

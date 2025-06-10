@@ -19,6 +19,7 @@ module.exports = {
     name: process.env.AUTHOR_NAME || 'Sanket Bhat',
     bio: process.env.AUTHOR_BIO || 'Engineer, learner, and occasional writer',
     email: process.env.AUTHOR_EMAIL || '',
+    avatar: process.env.AUTHOR_AVATAR || '/images/avatar.png',
     social: {
       twitter: process.env.AUTHOR_TWITTER || '@sankey',
       github: process.env.AUTHOR_GITHUB || 'sanket08',

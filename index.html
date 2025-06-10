@@ -21,7 +21,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Blog" />
   <meta name="twitter:description" content="Diary of Sankey blog posts" />
-  <meta name="twitter:creator" content="@sankey" />
+  <meta name="twitter:creator" content="@SanketBhat11" />
   
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico" />
@@ -41,7 +41,7 @@
   <!-- JSON-LD Structured Data -->
 </head>
 
-<body class="bg-orange-100 w-full max-w-[90%] md:w-[43%] mx-auto">
+<body class="w-full max-w-[90%] md:w-[43%] mx-auto" style="background-color: var(--warm-bg-primary);">
   <!-- Navigation -->
   <nav class="mt-6">
     <div>
@@ -79,45 +79,111 @@
     <p class="text-gray-600 font-serif">Personal thoughts and technical insights</p>
   </div>
 
-  <ul class="list-none">
-    <li class="border-b border-gray-200 last:border-b-0">
-      <a href="/blog/how-to-to-securely-transfer-files-or-folders-between-two-manjaro-pcs-over-ssh" class="post-link block py-3 hover:bg-orange-50 transition-colors">
-        <div class="flex justify-between items-center hover:underline underline-offset-4">
-          <span class="text-gray-500 w-[40%] font-serif">May 30, 2025</span>
-          <div class="w-full">
-            <div class="font-mono text-lg">How to to securely transfer files or folders between two Manjaro PCs over SSH.</div>
-            <div class="text-sm text-gray-600 font-serif mt-1">To transfer files or folders from one PC to another over SSH from scratch, you&#x27;ll need to ensure both PCs are properly s...</div>
-            <div class="flex items-center mt-1 text-xs text-gray-500">
-              <span class="tag bg-orange-200 px-2 py-1 rounded mr-2">Blog</span>
-              <span>3 min read</span>
-              <span class="ml-2">454 words</span>
+  <div class="space-y-4">
+    <article class="blog-card group">
+      <a href="/blog/improve-your-git-commits-by-using-conventional-commits" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              Jun 10
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              Improve Your Git Commits by Using Conventional Commits
+            </h2>
+            
+            <!-- Excerpt -->
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              Git commits are the foundation of collaboration in software development. Writing clear and structured commit messages si...
+            </p>
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">Blog</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>3 min read</span>
+                <span>432 words</span>
+              </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="post-tag">git</span>
+              <span class="post-tag">productivity</span>
             </div>
           </div>
         </div>
-        <div class="mt-2 ml-[40%] pl-4">
-          <span class="tag inline-block bg-gray-100 px-2 py-1 text-xs rounded mr-1 mb-1">tutorial</span>
-          <span class="tag inline-block bg-gray-100 px-2 py-1 text-xs rounded mr-1 mb-1">productivity</span>
+      </a>
+    </article>
+    <article class="blog-card group">
+      <a href="/blog/how-to-to-securely-transfer-files-or-folders-between-two-manjaro-pcs-over-ssh" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              May 30
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              How to to securely transfer files or folders between two Manjaro PCs over SSH.
+            </h2>
+            
+            <!-- Excerpt -->
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              To transfer files or folders from one PC to another over SSH from scratch, you&#x27;ll need to ensure both PCs are properly s...
+            </p>
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">Blog</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>3 min read</span>
+                <span>453 words</span>
+              </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="post-tag">tutorial</span>
+              <span class="post-tag">productivity</span>
+            </div>
+          </div>
         </div>
       </a>
-    </li>
-  </ul>
+    </article>
+  </div>
 
 
 </div>
 
 <div class="mt-8 pt-8 border-t border-gray-200">
   <h3 class="text-lg font-serif mb-4">Browse by Category</h3>
-  <div class="flex flex-wrap gap-2">
-    <a href="/blog" class="category-button inline-block bg-orange-200 px-3 py-1 rounded hover:bg-orange-300 transition-colors font-serif text-sm font-semibold">
+  <div class="flex flex-wrap gap-3">
+    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm font-semibold">
       All Posts
     </a>
-    <a href="/blog" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm ">
+    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm ">
       Blog (2)
     </a>
-    <a href="/research-notes" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm ">
+    <a href="/research-notes" class="category-button inline-block px-4 py-2 font-serif text-sm ">
       Research Notes (0)
     </a>
-    <a href="/math" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm ">
+    <a href="/math" class="category-button inline-block px-4 py-2 font-serif text-sm ">
       Math (0)
     </a>
   </div>
@@ -126,11 +192,14 @@
 <div class="mt-8 pt-8 border-t border-gray-200">
   <h3 class="text-lg font-serif mb-4">Popular Tags</h3>
   <div class="flex flex-wrap gap-2">
+    <a href="/tag/productivity" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
+      productivity (2)
+    </a>
+    <a href="/tag/git" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
+      git (1)
+    </a>
     <a href="/tag/tutorial" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
       tutorial (1)
-    </a>
-    <a href="/tag/productivity" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
-      productivity (1)
     </a>
   </div>
 </div>
@@ -143,9 +212,9 @@
     <div class="text-center text-gray-600 text-sm font-serif">
       <p>© 2025 Sanket Bhat. All rights reserved.</p>
       <div class="mt-2 flex justify-center gap-4">
-        <a href="@sankey" target="_blank" rel="noopener noreferrer" 
+        <a href="@SanketBhat11" target="_blank" rel="noopener noreferrer" 
            class="hover:text-gray-800 transition-colors">Twitter</a>
-        <a href="https://github.com/sanket08" target="_blank" rel="noopener noreferrer" 
+        <a href="https://github.com/sanket0808" target="_blank" rel="noopener noreferrer" 
            class="hover:text-gray-800 transition-colors">GitHub</a>
         <a href="https://linkedin.com/in/sanket-bhat" target="_blank" rel="noopener noreferrer" 
            class="hover:text-gray-800 transition-colors">LinkedIn</a>

@@ -5,7 +5,7 @@
     {{#if categoryDescription}}
     <p class="text-gray-600 font-serif">{{categoryDescription}}</p>
     {{/if}}
-    <a href="/blog" class="text-sm text-blue-600 hover:underline">← All posts</a>
+    <a href="/blog" class="text-sm hover:underline transition-colors" style="color: var(--warm-text-link);">← All posts</a>
   </div>
   {{else}}
   <div class="mb-6">
@@ -15,37 +15,60 @@
   {{/if}}
 
   {{#if posts.length}}
-  <ul class="list-none">
+  <div class="space-y-4">
     {{#each posts}}
-    <li class="border-b border-gray-200 last:border-b-0">
-      <a href="/{{slugify category}}/{{slug}}" class="post-link block py-3 hover:bg-orange-50 transition-colors">
-        <div class="flex justify-between items-center hover:underline underline-offset-4">
-          <span class="text-gray-500 w-[40%] font-serif">{{formatDate publishDate}}</span>
-          <div class="w-full">
-            <div class="font-mono text-lg">{{title}}</div>
+    <article class="blog-card group">
+      <a href="/{{slugify category}}/{{slug}}" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              {{formatDate publishDate "MMM d"}}
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              {{title}}
+            </h2>
+            
+            <!-- Excerpt -->
             {{#if excerpt}}
-            <div class="text-sm text-gray-600 font-serif mt-1">{{truncate excerpt 120}}</div>
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              {{truncate excerpt 120}}
+            </p>
             {{/if}}
-            <div class="flex items-center mt-1 text-xs text-gray-500">
-              <span class="tag bg-orange-200 px-2 py-1 rounded mr-2">{{category}}</span>
-              <span>{{readingTime}} min read</span>
-              {{#if wordCount}}
-              <span class="ml-2">{{wordCount}} words</span>
-              {{/if}}
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">{{category}}</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>{{readingTime}} min read</span>
+                {{#if wordCount}}
+                <span>{{wordCount}} words</span>
+                {{/if}}
+              </div>
             </div>
+            
+            <!-- Tags -->
+            {{#if tags.length}}
+            <div class="flex flex-wrap gap-2">
+              {{#each tags}}
+              <span class="post-tag">{{this}}</span>
+              {{/each}}
+            </div>
+            {{/if}}
           </div>
         </div>
-        {{#if tags.length}}
-        <div class="mt-2 ml-[40%] pl-4">
-          {{#each tags}}
-          <span class="tag inline-block bg-gray-100 px-2 py-1 text-xs rounded mr-1 mb-1">{{this}}</span>
-          {{/each}}
-        </div>
-        {{/if}}
       </a>
-    </li>
+    </article>
     {{/each}}
-  </ul>
+  </div>
 
   {{#if pagination}}
   <div class="mt-8 flex justify-between items-center">
@@ -75,7 +98,7 @@
     {{else}}
     <p class="text-gray-600 font-serif text-lg">No posts found.</p>
     {{/if}}
-    <a href="/blog" class="text-blue-600 hover:underline font-serif mt-4 inline-block">View all posts</a>
+    <a href="/blog" class="hover:underline font-serif mt-4 inline-block transition-colors" style="color: var(--warm-text-link);">View all posts</a>
   </div>
   {{/if}}
 </div>
@@ -83,17 +106,17 @@
 {{#if showCategoriesFilter}}
 <div class="mt-8 pt-8 border-t border-gray-200">
   <h3 class="text-lg font-serif mb-4">Browse by Category</h3>
-  <div class="flex flex-wrap gap-2">
-    <a href="/blog" class="category-button inline-block bg-orange-200 px-3 py-1 rounded hover:bg-orange-300 transition-colors font-serif text-sm {{#unless categoryName}}font-semibold{{/unless}}">
+  <div class="flex flex-wrap gap-3">
+    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm {{#unless categoryName}}font-semibold{{/unless}}">
       All Posts
     </a>
-    <a href="/blog" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Blog')}}font-semibold bg-orange-200{{/if}}">
+    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Blog')}}font-semibold{{/if}}">
       Blog (2)
     </a>
-    <a href="/research-notes" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Research Notes')}}font-semibold bg-orange-200{{/if}}">
+    <a href="/research-notes" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Research Notes')}}font-semibold{{/if}}">
       Research Notes (0)
     </a>
-    <a href="/math" class="category-button inline-block bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition-colors font-serif text-sm {{#if (eq categoryName 'Math')}}font-semibold bg-orange-200{{/if}}">
+    <a href="/math" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Math')}}font-semibold{{/if}}">
       Math (0)
     </a>
   </div>

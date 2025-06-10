@@ -295,4 +295,93 @@ nav a:hover {
 .blog-post h3 + *,
 .blog-post h4 + * {
   margin-top: 0.75rem;
+}
+
+/* ===== BLOG LIST STYLING ===== */
+
+/* Blog card container with Notion-style hover */
+.blog-card {
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-out;
+  margin: 0 -16px; /* Negative margin to allow hover expansion */
+}
+
+.blog-card:hover {
+  background: var(--warm-bg-secondary);
+  border-color: var(--warm-border-light);
+  box-shadow: 0 1px 3px rgba(212, 145, 92, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Category badge styling */
+.category-badge {
+  background: var(--warm-bg-code);
+  color: var(--warm-text-secondary);
+  border: 1px solid var(--warm-border-light);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+/* Post tags styling */
+.post-tag {
+  background: var(--warm-bg-tertiary);
+  color: var(--warm-text-muted);
+  border: 1px solid var(--warm-border-light);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  transition: all 0.15s ease-out;
+}
+
+.post-tag:hover {
+  background: var(--warm-bg-hover);
+  color: var(--warm-text-secondary);
+  border-color: var(--warm-border-medium);
+}
+
+/* Improve existing tag styling for consistency */
+.tag {
+  background: var(--warm-bg-tertiary) !important;
+  color: var(--warm-text-secondary) !important;
+  border: 1px solid var(--warm-border-light) !important;
+  transition: all 0.15s ease-out;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.tag:hover {
+  background: var(--warm-bg-hover) !important;
+  border-color: var(--warm-border-medium) !important;
+  transform: translateY(-1px);
+}
+
+/* Category button improvements */
+.category-button {
+  background: var(--warm-bg-code) !important;
+  color: var(--warm-text-secondary) !important;
+  border: 1px solid var(--warm-border-light) !important;
+  transition: all 0.15s ease-out;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.category-button:hover {
+  background: var(--warm-bg-hover) !important;
+  color: var(--warm-text-primary) !important;
+  border-color: var(--warm-border-medium) !important;
+  transform: translateY(-1px);
+}
+
+/* Update post-link hover for legacy support */
+.post-link:hover {
+  background: var(--warm-bg-secondary) !important;
+  transition: all 0.15s ease-out;
+  border-radius: 8px;
+  transform: translateY(-1px);
 } 

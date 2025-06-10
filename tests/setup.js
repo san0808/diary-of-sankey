@@ -1,27 +1,12 @@
-// Test setup file for Jest
-// This file runs before each test
+// Jest setup file
 
-// Set test environment variables
+// Set test timeout
+jest.setTimeout(30000);
+
+// Mock environment variables for testing
 process.env.NODE_ENV = 'test';
-process.env.LOG_LEVEL = 'error'; // Suppress logs during tests
-
-// Mock console methods to avoid noise in test output
-const originalConsole = global.console;
-
-beforeAll(() => {
-  global.console = {
-    ...originalConsole,
-    log: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn()
-  };
-});
-
-afterAll(() => {
-  global.console = originalConsole;
-});
+process.env.NOTION_API_KEY = 'test-api-key';
+process.env.NOTION_DATABASE_ID = 'test-database-id';
 
 // Global test utilities
 global.createMockNotionPage = (overrides = {}) => {
@@ -92,19 +77,4 @@ global.createMockNotionBlocks = () => {
       }
     }
   ];
-};
-
-// Mock date for consistent testing
-const mockDate = new Date('2024-01-01T00:00:00.000Z');
-global.Date = class extends Date {
-  constructor(...args) {
-    if (args.length === 0) {
-      return mockDate;
-    }
-    return new (Function.prototype.bind.apply(Date, [null, ...args]))();
-  }
-  
-  static now() {
-    return mockDate.getTime();
-  }
 }; 

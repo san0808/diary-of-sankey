@@ -1,7 +1,7 @@
 const { parse } = require('node-html-parser');
 const marked = require('marked');
 const logger = require('./logger');
-const config = require('../../config/site.config');
+// const config = require('../../config/site.config'); // Currently unused
 
 /**
  * Content processor for converting Notion content to styled HTML
@@ -355,7 +355,7 @@ class ContentProcessor {
   /**
    * Process table block
    */
-  processTable(block) {
+  processTable(_block) {
     // Note: Table processing would require additional API calls to get table rows
     // This is a simplified version
     return `<div class="my-6 overflow-x-auto">
@@ -368,7 +368,7 @@ class ContentProcessor {
   /**
    * Process divider block
    */
-  processDivider(block) {
+  processDivider(_block) {
     return `<hr class="my-8 border-gray-300" />`;
   }
 

@@ -2,7 +2,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const { format } = require('date-fns');
+// const { format } = require('date-fns'); // Currently unused
 const logger = require('./utils/logger');
 const NotionClient = require('./utils/notion-client');
 const ContentProcessor = require('./utils/content-processor');

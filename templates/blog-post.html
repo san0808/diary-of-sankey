@@ -27,7 +27,7 @@
       <span>{{wordCount}} words</span>
       {{/if}}
       {{#if category}}
-      <span class="bg-orange-200 px-2 py-1 rounded">{{category}}</span>
+      <span style="background: var(--warm-bg-code); color: var(--warm-text-secondary); border: 1px solid var(--warm-border-light);" class="px-3 py-1 rounded-md text-xs font-medium">{{category}}</span>
       {{/if}}
     </div>
 
@@ -42,7 +42,7 @@
     {{/if}}
 
     {{#if excerpt}}
-    <div class="text-lg text-gray-700 font-serif italic border-l-4 border-orange-300 pl-4 my-6">
+    <div class="text-lg font-serif italic pl-6 my-6" style="color: var(--warm-text-secondary); border-left: 4px solid var(--warm-border-accent); background: var(--warm-bg-secondary); padding: 20px; border-radius: 0 8px 8px 0;">
       {{excerpt}}
     </div>
     {{/if}}
@@ -57,12 +57,12 @@
   <!-- Table of Contents (if post is long enough) -->
   {{#if tableOfContents.length}}
   {{#if (gt tableOfContents.length 2)}}
-  <nav class="bg-white bg-opacity-60 border border-gray-200 rounded-lg p-4 mb-8 backdrop-blur-sm">
-    <h3 class="font-serif text-lg mb-3">Table of Contents</h3>
-    <ul class="space-y-1">
+  <nav class="bg-white bg-opacity-60 border border-gray-200 rounded-lg p-5 mb-8 backdrop-blur-sm">
+    <h3 class="font-serif text-lg mb-4 text-orange-700 border-b border-orange-200 pb-2">Table of Contents</h3>
+    <ul class="space-y-2">
       {{#each tableOfContents}}
       <li class="{{#if (eq level 1)}}font-semibold{{/if}} {{#if (eq level 2)}}ml-4{{/if}} {{#if (eq level 3)}}ml-8{{/if}}">
-        <a href="{{anchor}}" class="text-blue-600 hover:text-blue-800 hover:underline text-sm">
+        <a href="{{anchor}}" class="text-orange-600 hover:text-orange-800 hover:underline text-sm transition-colors duration-200">
           {{text}}
         </a>
       </li>
@@ -73,7 +73,7 @@
   {{/if}}
 
   <!-- Post Content -->
-  <div class="prose prose-orange max-w-none">
+  <div class="prose prose-orange max-w-none" id="blog-content">
     {{{content}}}
   </div>
 
@@ -90,7 +90,7 @@
         {{#if author.social.twitter}}
         <a href="https://twitter.com/intent/tweet?text={{title}}&url={{site.url}}/{{category}}/{{slug}}&via={{author.social.twitter}}" 
            target="_blank" rel="noopener noreferrer"
-           class="text-blue-600 hover:text-blue-800 text-sm">
+           class="text-orange-600 hover:text-orange-800 text-sm transition-colors duration-200">
           Share on Twitter
         </a>
         {{/if}}
@@ -101,7 +101,7 @@
     <div class="mt-8 p-6 bg-white bg-opacity-50 rounded-lg border border-gray-200 backdrop-blur-sm">
       <div class="flex items-start">
         {{#if author.avatar}}
-        <img src="{{author.avatar}}" alt="{{author.name}}" class="w-16 h-16 rounded-full mr-4" />
+        <img src="{{author.avatar}}" alt="{{author.name}}" class="w-16 h-16 rounded-full mr-4 border-2 border-orange-200" />
         {{else}}
         <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full mr-4 flex items-center justify-center shadow-lg">
           <span class="text-2xl font-serif text-white">{{substring author.name 0 1}}</span>
@@ -109,21 +109,21 @@
         {{/if}}
         
         <div>
-          <h4 class="font-serif text-lg mb-2">{{author.name}}</h4>
+          <h4 class="font-serif text-lg mb-2 text-orange-800">{{author.name}}</h4>
           <p class="text-gray-700 font-serif text-sm mb-3">{{author.bio}}</p>
           
           <div class="flex gap-3">
             {{#if author.social.twitter}}
             <a href="{{author.social.twitter}}" target="_blank" rel="noopener noreferrer" 
-               class="text-blue-600 hover:text-blue-800 text-sm">Twitter</a>
+               class="text-orange-600 hover:text-orange-800 text-sm transition-colors duration-200">Twitter</a>
             {{/if}}
             {{#if author.social.github}}
             <a href="https://github.com/{{author.social.github}}" target="_blank" rel="noopener noreferrer" 
-               class="text-blue-600 hover:text-blue-800 text-sm">GitHub</a>
+               class="text-orange-600 hover:text-orange-800 text-sm transition-colors duration-200">GitHub</a>
             {{/if}}
             {{#if author.social.linkedin}}
             <a href="https://linkedin.com/in/{{author.social.linkedin}}" target="_blank" rel="noopener noreferrer" 
-               class="text-blue-600 hover:text-blue-800 text-sm">LinkedIn</a>
+               class="text-orange-600 hover:text-orange-800 text-sm transition-colors duration-200">LinkedIn</a>
             {{/if}}
           </div>
         </div>
@@ -182,4 +182,37 @@
   <a href="/{{category}}" class="font-serif text-lg hover:underline underline-offset-4">
     ← Back to {{category}}
   </a>
-</div> 
+</div>
+
+<script>
+// Add copy functionality to code blocks
+document.addEventListener('DOMContentLoaded', function() {
+  const codeBlocks = document.querySelectorAll('#blog-content pre');
+  
+  codeBlocks.forEach(function(block) {
+    // Create copy button
+    const button = document.createElement('button');
+    button.textContent = 'Copy';
+    button.className = 'copy-button';
+    
+    // Add click handler
+    button.addEventListener('click', function() {
+      const code = block.querySelector('code');
+      if (code) {
+        navigator.clipboard.writeText(code.textContent).then(function() {
+          button.textContent = 'Copied!';
+          button.classList.add('copied');
+          setTimeout(function() {
+            button.textContent = 'Copy';
+            button.classList.remove('copied');
+          }, 2000);
+        });
+      }
+    });
+    
+    // Append button to code block
+    block.style.position = 'relative';
+    block.appendChild(button);
+  });
+});
+</script>

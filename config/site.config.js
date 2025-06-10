@@ -21,8 +21,8 @@ module.exports = {
     email: process.env.AUTHOR_EMAIL || '',
     avatar: process.env.AUTHOR_AVATAR || '/images/avatar.png',
     social: {
-      twitter: process.env.AUTHOR_TWITTER || '@sankey',
-      github: process.env.AUTHOR_GITHUB || 'sanket08',
+      twitter: process.env.AUTHOR_TWITTER || 'SanketBhat11',
+      github: process.env.AUTHOR_GITHUB || 'san0808',
       linkedin: process.env.AUTHOR_LINKEDIN || 'sanket-bhat'
     }
   },

@@ -213,20 +213,20 @@ class SetupWizard {
         type: 'input',
         name: 'authorTwitter',
         message: 'Twitter handle (optional):',
-        default: '@sankey',
+        default: 'SanketBhat11',
         filter: (input) => input.startsWith('@') ? input : input ? `@${input}` : ''
       },
       {
         type: 'input',
         name: 'authorGithub',
         message: 'GitHub username (optional):',
-        default: 'sanket08'
+        default: 'san0808'
       },
       {
         type: 'input',
         name: 'authorLinkedin',
         message: 'LinkedIn username (optional):',
-        default: 'sanket-bhat'
+        default: 'sanket-bhat-286a1a1b7'
       },
       {
         type: 'input',

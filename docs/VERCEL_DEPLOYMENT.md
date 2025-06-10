@@ -41,9 +41,9 @@ BLOG_TITLE=Diary of Sankey
 ```
 AUTHOR_BIO=Just love tinkering things around
 AUTHOR_EMAIL=your-email@example.com
-AUTHOR_TWITTER=@sankey
-AUTHOR_GITHUB=sanket08
-AUTHOR_LINKEDIN=sanket-bhat
+AUTHOR_TWITTER=SanketBhat11
+AUTHOR_GITHUB=san0808
+AUTHOR_LINKEDIN=sanket-bhat-286a1a1b7
 GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX
 NODE_ENV=production
 ```

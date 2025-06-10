@@ -78,7 +78,7 @@ jobs:
       run: npm ci
     
     - name: Test Notion connection
-      if: secrets.NOTION_API_KEY && secrets.NOTION_DATABASE_ID
+      if: ${{ secrets.NOTION_API_KEY != '' && secrets.NOTION_DATABASE_ID != '' }}
       run: npm run sync -- --dry-run
       env:
         NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
@@ -104,13 +104,13 @@ jobs:
     
     steps:
     - name: Trigger Vercel Deploy Hook
-      if: secrets.VERCEL_DEPLOY_HOOK
+      if: ${{ secrets.VERCEL_DEPLOY_HOOK != '' }}
       run: |
         curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
         echo "✅ Triggered Vercel deployment"
     
     - name: No deploy hook configured
-      if: "!secrets.VERCEL_DEPLOY_HOOK"
+      if: ${{ secrets.VERCEL_DEPLOY_HOOK == '' }}
       run: |
         echo "ℹ️ No VERCEL_DEPLOY_HOOK configured"
         echo "Vercel will auto-deploy on git push (recommended)" 

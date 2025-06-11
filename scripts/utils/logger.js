@@ -58,7 +58,8 @@ class Logger {
    */
   formatMessage(level, message, meta = {}) {
     const timestamp = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
-    const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+    const safeMeta = meta || {};
+    const metaStr = Object.keys(safeMeta).length > 0 ? ` ${JSON.stringify(safeMeta)}` : '';
     return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
   }
 

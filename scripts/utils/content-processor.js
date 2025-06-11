@@ -1,7 +1,7 @@
 const { parse } = require('node-html-parser');
 const marked = require('marked');
+const path = require('path');
 const logger = require('./logger');
-// const config = require('../../config/site.config'); // Currently unused
 
 /**
  * Content processor for converting Notion content to styled HTML
@@ -323,14 +323,33 @@ class ContentProcessor {
 
   /**
    * Process image block
+   * Handles all three Notion file types: file, file_upload, external
    */
   async processImage(block) {
-    const imageUrl = block.image.file?.url || block.image.external?.url;
+    // Handle different Notion file object types per official API docs
+    let imageUrl;
+    
+    if (block.image.type === 'file') {
+      // Notion-hosted file (expires after 1 hour)
+      imageUrl = block.image.file?.url;
+    } else if (block.image.type === 'file_upload') {
+      // File uploaded via API (permanent, reference by ID)
+      // TODO: Implement file_upload handling if needed
+      logger.warn('File upload type not yet implemented, skipping image');
+      return '';
+    } else if (block.image.type === 'external') {
+      // External file (permanent URL)
+      imageUrl = block.image.external?.url;
+    } else {
+      // Fallback for legacy format
+      imageUrl = block.image.file?.url || block.image.external?.url;
+    }
+    
     const caption = block.image.caption ? this.extractRichText(block.image.caption) : '';
     
     if (!imageUrl) return '';
 
-    // TODO: Process and optimize image
+    // Process and cache the image following Notion's recommendations
     const optimizedUrl = await this.processImageUrl(imageUrl);
     
     const captionHtml = caption ? `<figcaption class="text-center text-sm text-gray-600 mt-2 font-serif">${caption}</figcaption>` : '';
@@ -494,14 +513,120 @@ class ContentProcessor {
   }
 
   /**
-   * Process image URL (placeholder for image optimization)
-   * @param {string} imageUrl - Original image URL
-   * @returns {Promise<string>} Processed image URL
+   * Process image URL following Notion's strict recommendations
+   * Note: Notion says "Don't cache URLs, re-fetch file objects"
+   * For static sites, we either download images OR accept potential expiration
+   * @param {string} imageUrl - Original Notion image URL
+   * @returns {Promise<string>} Image URL (may expire for Notion-hosted files)
    */
   async processImageUrl(imageUrl) {
-    // TODO: Implement image processing and optimization
-    // For now, return the original URL
-    return imageUrl;
+    try {
+      // Check if it's a Notion-hosted file (these expire after 1 hour per Notion docs)
+      const isNotionHosted = imageUrl.includes('s3.us-west-2.amazonaws.com') || 
+                            imageUrl.includes('notion.so');
+      
+      if (!isNotionHosted) {
+        // External files (type: external) - these are permanent URLs, return as-is
+        logger.debug(`Using external image URL: ${imageUrl}`);
+        return imageUrl;
+      }
+
+      // Notion-hosted files (type: file) - using Option B: Smart Caching
+      // Note: This violates Notion's "don't cache" recommendation but ensures images never break
+      // Perfect for static sites with periodic sync schedules
+      const fs = require('fs-extra');
+      const path = require('path');
+      const crypto = require('crypto');
+      const https = require('https');
+      const http = require('http');
+      const config = require('../../config/site.config');
+
+      // Create stable filename from URL (excluding expiry params)
+      const baseUrl = imageUrl.split('?')[0];
+      const urlHash = crypto.createHash('md5').update(baseUrl).digest('hex');
+      const extension = this.getImageExtension(baseUrl);
+      const filename = `${urlHash}${extension}`;
+      
+      const imagesDir = path.join(process.cwd(), config.build.outputDir, 'images', 'notion');
+      const localPath = path.join(imagesDir, filename);
+      const publicUrl = `/images/notion/${filename}`;
+
+      // Track this image as "in use" for cleanup purposes
+      if (!this.usedImages) this.usedImages = new Set();
+      this.usedImages.add(filename);
+
+      if (await fs.pathExists(localPath)) {
+        logger.debug(`Using cached Notion image: ${filename}`);
+        return publicUrl;
+      }
+
+      await fs.ensureDir(imagesDir);
+      await this.downloadImage(imageUrl, localPath);
+      
+      logger.info(`Downloaded Notion image: ${filename}`);
+      return publicUrl;
+
+    } catch (error) {
+      logger.warn(`Failed to process image ${imageUrl}, using original URL`, error);
+      return imageUrl;
+    }
+  }
+
+  /**
+   * Download image from URL to local path
+   * @param {string} url - Image URL
+   * @param {string} localPath - Local file path
+   * @returns {Promise<void>}
+   */
+  async downloadImage(url, localPath) {
+    return new Promise((resolve, reject) => {
+      const client = url.startsWith('https') ? https : http;
+      
+      const request = client.get(url, (response) => {
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
+
+        const fs = require('fs');
+        const fileStream = fs.createWriteStream(localPath);
+        
+        response.pipe(fileStream);
+        
+        fileStream.on('finish', () => {
+          fileStream.close();
+          resolve();
+        });
+        
+        fileStream.on('error', (error) => {
+          fs.unlink(localPath, () => {}); // Clean up on error
+          reject(error);
+        });
+      });
+
+      request.on('error', reject);
+      request.setTimeout(10000, () => {
+        request.destroy();
+        reject(new Error('Image download timeout'));
+      });
+    });
+  }
+
+  /**
+   * Get file extension from image URL
+   * @param {string} url - Image URL
+   * @returns {string} File extension with dot
+   */
+  getImageExtension(url) {
+    const urlWithoutQuery = url.split('?')[0];
+    const extension = path.extname(urlWithoutQuery).toLowerCase();
+    
+    // Default to .jpg if no extension found
+    if (!extension || !['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(extension)) {
+      return '.jpg';
+    }
+    
+    return extension;
   }
 
   /**
@@ -583,6 +708,50 @@ class ContentProcessor {
     };
     
     return text.replace(/[&<>"']/g, char => htmlEscapes[char]);
+  }
+
+  /**
+   * Clean up unused cached images (for Option B)
+   * Call this after processing all posts to remove orphaned images
+   */
+  async cleanupUnusedImages() {
+    if (!this.usedImages) {
+      logger.debug('No image tracking enabled, skipping cleanup');
+      return;
+    }
+
+    try {
+      const fs = require('fs-extra');
+      const path = require('path');
+      const config = require('../../config/site.config');
+      
+      const imagesDir = path.join(process.cwd(), config.build.outputDir, 'images', 'notion');
+      
+      if (!await fs.pathExists(imagesDir)) {
+        return;
+      }
+
+      const existingFiles = await fs.readdir(imagesDir);
+      let deletedCount = 0;
+
+      for (const file of existingFiles) {
+        if (!this.usedImages.has(file)) {
+          await fs.remove(path.join(imagesDir, file));
+          logger.debug(`Cleaned up unused image: ${file}`);
+          deletedCount++;
+        }
+      }
+
+      if (deletedCount > 0) {
+        logger.info(`Cleaned up ${deletedCount} unused cached images`);
+      }
+
+      // Reset for next sync
+      this.usedImages.clear();
+      
+    } catch (error) {
+      logger.warn('Failed to cleanup unused images', error);
+    }
   }
 }
 

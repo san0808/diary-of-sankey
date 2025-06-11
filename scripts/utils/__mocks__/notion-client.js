@@ -1,5 +1,16 @@
 // Manual mock for NotionClient
-module.exports = jest.fn().mockImplementation(() => {
+module.exports = jest.fn().mockImplementation((options = {}) => {
+  // Constructor validation logic matching the real class
+  const apiKey = options.apiKey !== undefined ? options.apiKey : process.env.NOTION_API_KEY;
+  const databaseId = options.databaseId !== undefined ? options.databaseId : process.env.NOTION_DATABASE_ID;
+  
+  if (!apiKey) {
+    throw new Error('Notion API key is required');
+  }
+  
+  if (!databaseId) {
+    throw new Error('Notion database ID is required');
+  }
   const mockInstance = {
     // API connection and authentication
     testConnection: jest.fn().mockResolvedValue(true),
@@ -35,19 +46,44 @@ module.exports = jest.fn().mockImplementation(() => {
     updatePublishDate: jest.fn().mockResolvedValue({}),
 
     // Utility methods
-    extractMetadata: jest.fn().mockReturnValue({
-      id: 'test-id',
-      title: 'Test Post',
-      slug: 'test-post',
-      lastEditedTime: '2024-01-01T00:00:00Z',
-      publishDate: '2024-01-01',
-      status: 'Published',
-      category: 'Blog',
-      tags: ['test', 'jest'],
-      author: 'Test Author',
-      featured: false
+    extractMetadata: jest.fn().mockImplementation((page) => {
+      // Return a response that matches the test expectation structure
+      return {
+        id: page.id,
+        title: mockInstance.getPropertyValue(page.properties?.Title) || 'Default Title',
+        slug: mockInstance.generateSlug(mockInstance.getPropertyValue(page.properties?.Title) || 'default'),
+        status: mockInstance.getPropertyValue(page.properties?.Status) || 'Draft',
+        category: mockInstance.getPropertyValue(page.properties?.Category) || null,
+        publishDate: mockInstance.getPropertyValue(page.properties?.['Publish Date']) || null,
+        tags: mockInstance.getPropertyValue(page.properties?.Tags) || [],
+        author: mockInstance.getPropertyValue(page.properties?.Author) || null,
+        featured: mockInstance.getPropertyValue(page.properties?.Featured) || false,
+        createdTime: page.created_time || null,
+        lastEditedTime: page.last_edited_time || null,
+        excerpt: null,
+        featuredImage: null
+      };
     }),
-    getPropertyValue: jest.fn().mockReturnValue('default-value'),
+    getPropertyValue: jest.fn().mockImplementation((property) => {
+      if (!property) return null;
+      
+      switch (property.type) {
+        case 'title':
+          return property.title?.[0]?.plain_text || null;
+        case 'select':
+          return property.select?.name || null;
+        case 'multi_select':
+          return property.multi_select?.map(option => option.name) || [];
+        case 'rich_text':
+          return property.rich_text?.map(text => text.plain_text).join('') || null;
+        case 'date':
+          return property.date?.start || null;
+        case 'checkbox':
+          return property.checkbox || false;
+        default:
+          return null;
+      }
+    }),
     generateSlug: jest.fn().mockImplementation((title) => 
       title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
     ),
@@ -57,8 +93,8 @@ module.exports = jest.fn().mockImplementation(() => {
     withRetry: jest.fn().mockImplementation(async (operation) => operation()),
 
     // Mock configuration
-    apiKey: 'test-api-key',
-    databaseId: 'test-database-id',
+    apiKey: apiKey,
+    databaseId: databaseId,
     rateLimiter: {
       requests: 0,
       resetTime: Date.now() + 60000,

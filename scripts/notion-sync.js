@@ -71,6 +71,9 @@ class NotionSync {
       // Clean up old content
       await this.cleanupOldContent(processedPosts);
 
+      // Clean up unused cached images (if image caching is enabled)
+      await this.contentProcessor.cleanupUnusedImages();
+
       logger.success(`Sync completed successfully! Processed ${processedPosts.length} posts`);
       syncTimer();
       

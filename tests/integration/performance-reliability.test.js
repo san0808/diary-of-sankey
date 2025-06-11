@@ -1,8 +1,35 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-// Mock dependencies  
+// Mock dependencies properly before any requires
 jest.mock('fs-extra');
+jest.mock('../../scripts/utils/notion-client');
+jest.mock('../../config/site.config', () => ({
+  notion: {
+    apiKey: 'test-key',
+    databaseId: 'test-db-id'
+  },
+  build: {
+    outputDir: 'dist',
+    contentDir: 'content',
+    templatesDir: 'templates',
+    staticDir: 'static'
+  },
+  content: {
+    contentDir: 'content',
+    postsPerPage: 10
+  },
+  site: {
+    title: 'Test Blog',
+    description: 'Test blog description',
+    url: 'https://test.com'
+  },
+  author: {
+    name: 'Test Author',
+    email: 'test@example.com'
+  },
+  categories: {}
+}));
 
 describe('Performance & Reliability Integration', () => {
   let originalEnv;
@@ -10,21 +37,57 @@ describe('Performance & Reliability Integration', () => {
   beforeEach(() => {
     originalEnv = { ...process.env };
     
-    // Mock file system
+    // Mock file system with better template support
     fs.ensureDirSync = jest.fn();
-    fs.pathExists = jest.fn().mockResolvedValue(true);
-    fs.readFile = jest.fn();
-    fs.writeFile = jest.fn();
+    fs.ensureDir = jest.fn().mockResolvedValue();
+    fs.pathExists = jest.fn().mockImplementation((filePath) => {
+      // Templates exist
+      if (filePath.includes('templates/') || filePath.endsWith('.html')) {
+        return Promise.resolve(true);
+      }
+      // Content files exist  
+      if (filePath.includes('content/') || filePath.endsWith('.json')) {
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(false);
+    });
+    
+    fs.readFile = jest.fn().mockImplementation((filePath) => {
+      if (filePath.includes('base.html')) {
+        return Promise.resolve('<!DOCTYPE html><html><body>{{{content}}}</body></html>');
+      }
+      if (filePath.includes('home.html')) {
+        return Promise.resolve('<div class="home">{{#each recentPosts}}<h2>{{title}}</h2>{{/each}}</div>');
+      }
+      if (filePath.includes('blog-list.html')) {
+        return Promise.resolve('<div class="blog-list">{{#each posts}}<article>{{title}}</article>{{/each}}</div>');
+      }
+      if (filePath.includes('blog-post.html')) {
+        return Promise.resolve('<article class="post"><h1>{{title}}</h1><div>{{{content}}}</div></article>');
+      }
+      return Promise.resolve('{}');
+    });
+    
+    fs.readJson = jest.fn().mockResolvedValue({
+      posts: [],
+      categories: [],
+      tags: []
+    });
+    
+    fs.writeFile = jest.fn().mockResolvedValue();
+    fs.writeJson = jest.fn().mockResolvedValue();
     fs.readdir = jest.fn().mockResolvedValue([]);
     fs.stat = jest.fn().mockResolvedValue({ 
       isFile: () => true, 
       mtime: new Date(),
       size: 1024 * 1024 // 1MB default
     });
-    fs.copy = jest.fn();
-    fs.remove = jest.fn();
+    fs.copy = jest.fn().mockResolvedValue();
+    fs.remove = jest.fn().mockResolvedValue();
     
     process.env.NODE_ENV = 'test';
+    process.env.NOTION_API_KEY = 'test-key';
+    process.env.NOTION_DATABASE_ID = 'test-db-id';
   });
 
   afterEach(() => {

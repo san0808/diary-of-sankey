@@ -6,5 +6,6 @@ module.exports = jest.fn().mockImplementation(() => ({
     wordCount: 2,
     excerpt: 'Test content',
     tableOfContents: []
-  })
+  }),
+  cleanupUnusedImages: jest.fn().mockResolvedValue()
 })); 

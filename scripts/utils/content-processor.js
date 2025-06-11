@@ -1,6 +1,8 @@
 const { parse } = require('node-html-parser');
 const marked = require('marked');
 const path = require('path');
+const https = require('https');
+const http = require('http');
 const logger = require('./logger');
 
 /**
@@ -535,10 +537,7 @@ class ContentProcessor {
       // Note: This violates Notion's "don't cache" recommendation but ensures images never break
       // Perfect for static sites with periodic sync schedules
       const fs = require('fs-extra');
-      const path = require('path');
       const crypto = require('crypto');
-      const https = require('https');
-      const http = require('http');
       const config = require('../../config/site.config');
 
       // Create stable filename from URL (excluding expiry params)

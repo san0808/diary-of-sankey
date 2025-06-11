@@ -1,0 +1,118 @@
+name: Auto Sync with Notion
+
+on:
+  schedule:
+    # Run every 3 hours (at minutes 0, 3, 6, 9, 12, 15, 18, 21)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      force_sync:
+        description: 'Force sync all posts (ignore last modified time)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  auto-sync:
+    name: Auto Sync Content
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only run on main branch
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test Notion connection
+        run: |
+          node -e '
+            const NotionClient = require("./scripts/utils/notion-client");
+            const client = new NotionClient();
+            client.testConnection()
+              .then(connected => {
+                if (connected) {
+                  console.log("✅ Notion connection successful");
+                } else {
+                  throw new Error("Notion connection failed");
+                }
+              })
+              .catch(err => {
+                console.error("❌ Notion connection error:", err.message);
+                process.exit(1);
+              });
+          '
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+
+      - name: Sync content from Notion
+        run: |
+          echo "🔄 Starting Notion sync..."
+          if [ "${{ github.event.inputs.force_sync }}" = "true" ]; then
+            echo "🔧 Running forced sync..."
+            npm run sync -- --force
+          else
+            echo "📝 Running incremental sync..."
+            npm run sync
+          fi
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          SITE_URL: ${{ secrets.SITE_URL || 'https://blog.devsanket.com' }}
+          AUTHOR_NAME: ${{ secrets.AUTHOR_NAME || 'Sanket Bhat' }}
+          BLOG_TITLE: ${{ secrets.BLOG_TITLE || 'Diary of Sankey' }}
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes detected"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Get current timestamp
+          timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          # Count files changed
+          files_changed=$(git diff --staged --name-only | wc -l)
+          
+          git commit -m "🔄 Auto-sync: Updated $files_changed files from Notion ($timestamp)"
+          git push
+
+      - name: Sync Summary
+        run: |
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Content synced and changes pushed to main branch"
+            echo "🚀 Deployment will be triggered automatically by Vercel"
+          else
+            echo "ℹ️  No new content changes detected"
+            echo "📝 Blog is up to date with Notion"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Auto-sync failed!"
+          echo "🔍 Check the logs above for details"
+          echo "📝 You may need to run 'npm run sync' manually" 

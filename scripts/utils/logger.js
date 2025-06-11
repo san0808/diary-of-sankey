@@ -71,6 +71,9 @@ class Logger {
   async writeToFile(level, message) {
     if (!this.enableFile) return;
 
+    // Ensure log directory exists
+    await fs.ensureDir(this.logDir);
+
     const logFile = path.join(this.logDir, `${format(new Date(), 'yyyy-MM-dd')}.log`);
     const errorLogFile = path.join(this.logDir, 'error.log');
 

@@ -37,6 +37,11 @@ jest.mock('../../config/site.config', () => ({
       plausible: null
     }
   },
+  performance: {
+    enableServiceWorker: false,
+    enableCompression: true,
+    enableMinification: true
+  },
   categories: {}
 }));
 
@@ -371,20 +376,20 @@ describe('Auto-Sync Workflow Integration', () => {
       };
 
       const mockNotionClient = {
-        extractMetadata: jest.fn().mockImplementation(() => 
-          Promise.reject(new Error('Page malformed is missing a title'))
-        ),
+        extractMetadata: jest.fn().mockImplementation(() => {
+          return Promise.reject(new Error('Page malformed is missing a title'));
+        }),
         getPageBlocks: jest.fn().mockResolvedValue([])
       };
 
       const sync = new NotionSync({ dryRun: true });
       sync.notionClient = mockNotionClient;
       
-      // Should handle malformed posts without crashing
+      // Should handle malformed posts without crashing - the error should be caught and logged
       const processedPost = await sync.processPost(malformedPost);
       
-      // Should either return null or valid post object
-      expect(processedPost === null || typeof processedPost === 'object').toBe(true);
+      // Since the error is caught and logged, processPost should return null for failed processing
+      expect(processedPost).toBeNull();
     });
 
     it('should detect and handle content corruption', async () => {

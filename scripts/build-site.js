@@ -139,7 +139,7 @@ class SiteBuilder {
     const categoriesIndexPath = path.join(this.contentDir, 'categories', 'index.json');
     if (await fs.pathExists(categoriesIndexPath)) {
       try {
-        const categoriesIndex = await fs.readJson(categoriesIndexPath);
+      const categoriesIndex = await fs.readJson(categoriesIndexPath);
         // Ensure categories is always an array
         if (categoriesIndex && Array.isArray(categoriesIndex.categories)) {
           content.categories = categoriesIndex.categories;
@@ -160,8 +160,8 @@ class SiteBuilder {
     const tagsIndexPath = path.join(this.contentDir, 'tags-index.json');
     if (await fs.pathExists(tagsIndexPath)) {
       try {
-        const tagsIndex = await fs.readJson(tagsIndexPath);
-        content.tags = tagsIndex.tags || [];
+      const tagsIndex = await fs.readJson(tagsIndexPath);
+      content.tags = tagsIndex.tags || [];
       } catch (error) {
         logger.warn('Failed to parse tags index, using empty array', error);
         content.tags = [];

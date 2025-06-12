@@ -2,13 +2,13 @@
 module.exports = jest.fn().mockImplementation(() => {
   const mockInstance = {
     // Main processing methods
-    processPage: jest.fn().mockResolvedValue({
+  processPage: jest.fn().mockResolvedValue({
       content: '<p class="mt-4 font-serif text-lg">Test content</p>',
-      readingTime: 1,
-      wordCount: 2,
-      excerpt: 'Test content',
-      tableOfContents: []
-    }),
+    readingTime: 1,
+    wordCount: 2,
+    excerpt: 'Test content',
+    tableOfContents: []
+  }),
     processBlocks: jest.fn().mockResolvedValue('<p>Test content</p>'),
     processBlock: jest.fn().mockResolvedValue('<p>Test block</p>'),
 

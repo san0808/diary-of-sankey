@@ -48,7 +48,24 @@ GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX
 NODE_ENV=production
 ```
 
-### Step 4: Deploy
+### Step 4: Set Up Auto-Sync Deploy Hook
+
+1. **Create Deploy Hook** in Vercel:
+   - Go to Project Settings → Git → Deploy Hooks
+   - Create hook with name "Auto Sync from Notion"
+   - Copy the webhook URL (looks like: `https://api.vercel.com/v1/integrations/deploy/...`)
+
+2. **Add GitHub Secret**:
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `VERCEL_DEPLOY_HOOK`
+   - Value: The webhook URL from step 1
+
+3. **Test Auto-Sync**:
+   - Go to GitHub Actions → "Auto Sync with Notion" → "Run workflow"
+   - Should complete successfully and trigger Vercel deployment!
+
+### Step 5: Deploy
 
 Click **"Deploy"** - your blog will be live in ~2 minutes! 🎉
 

@@ -84,12 +84,18 @@ A modern, Notion-powered blog system that preserves beautiful design while provi
 ## 🏗️ Architecture
 
 ```
-Notion Database → Notion API → Content Processor → Static Site → Deploy
-                                    ↓
-                        (Minimalist Styling Applied)
-                                    ↓
-                             Preview System
+Notion Database → Auto-Sync (every 3h) → Build → Deploy
+      ↓              ↓                    ↓        ↓
+   Content API → Temp Content → Static Site → Vercel
+                     ↓
+              (Never Committed)
 ```
+
+**Clean Separation:**
+- **Notion**: Content source of truth
+- **Git**: Code source of truth only  
+- **Build**: Transforms content → static site
+- **Deploy**: Automatic via Vercel integration
 
 ### Key Components
 

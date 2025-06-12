@@ -205,8 +205,9 @@ class SiteBuilder {
     const recentPosts = content.publishedPosts
       .slice(0, 5);
     
+    const baseData = this.getBaseTemplateData();
     const homeContent = this.templates.home({
-      author: config.author,
+      author: baseData.author,
       featuredPosts,
       recentPosts,
       scheduledPosts: content.scheduledPosts.slice(0, 3)
@@ -374,9 +375,10 @@ class SiteBuilder {
     const prevPost = currentIndex > 0 ? categoryPosts[currentIndex - 1] : null;
     const nextPost = currentIndex < categoryPosts.length - 1 ? categoryPosts[currentIndex + 1] : null;
     
+    const baseData = this.getBaseTemplateData();
     const postContent = this.templates['blog-post']({
       ...fullPost,
-      author: config.author,
+      author: baseData.author,
       site: config.site,
       relatedPosts,
       prevPost,
@@ -600,9 +602,23 @@ class SiteBuilder {
    * Get base template data
    */
   getBaseTemplateData() {
+    // Format social URLs properly
+    const author = {
+      ...config.author,
+      social: {
+        ...config.author.social
+      }
+    };
+    
+    // Format Twitter URL - handle both @username and username formats
+    if (author.social.twitter) {
+      const handle = author.social.twitter.replace('@', '');
+      author.social.twitter = `https://x.com/${handle}`;
+    }
+    
     return {
       site: config.site,
-      author: config.author,
+      author,
       analytics: config.services.analytics,
       currentYear: new Date().getFullYear(),
       enableSearch: config.content.enableSearch,
@@ -677,6 +693,14 @@ class SiteBuilder {
     this.handlebars.registerHelper('or', (...args) => {
       const options = args.pop();
       return args.some(Boolean);
+    });
+    
+    // Twitter handle helper - extracts handle from Twitter URL
+    this.handlebars.registerHelper('twitterHandle', (twitterUrl) => {
+      if (!twitterUrl) return '';
+      // Extract handle from URL like https://x.com/SanketBhat11 or @SanketBhat11
+      const match = twitterUrl.match(/(?:x\.com\/|twitter\.com\/|@)([a-zA-Z0-9_]+)/);
+      return match ? match[1] : twitterUrl.replace('@', '');
     });
   }
 

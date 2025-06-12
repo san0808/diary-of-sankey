@@ -25,7 +25,7 @@
   <meta name="twitter:title" content="{{#if pageTitle}}{{pageTitle}}{{else}}{{site.title}}{{/if}}" />
   <meta name="twitter:description" content="{{#if description}}{{description}}{{else}}{{site.description}}{{/if}}" />
   {{#if author.social.twitter}}
-  <meta name="twitter:creator" content="{{author.social.twitter}}" />
+  <meta name="twitter:creator" content="@{{twitterHandle author.social.twitter}}" />
   {{/if}}
   {{#if featuredImage}}
   <meta name="twitter:image" content="{{site.url}}{{featuredImage}}" />

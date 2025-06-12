@@ -88,7 +88,7 @@
       
       <div class="flex gap-4">
         {{#if author.social.twitter}}
-        <a href="https://twitter.com/intent/tweet?text={{title}}&url={{site.url}}/{{category}}/{{slug}}&via={{author.social.twitter}}" 
+        <a href="https://twitter.com/intent/tweet?text={{title}}&url={{site.url}}/{{category}}/{{slug}}&via={{twitterHandle author.social.twitter}}" 
            target="_blank" rel="noopener noreferrer"
            class="text-orange-600 hover:text-orange-800 text-sm transition-colors duration-200">
           Share on Twitter

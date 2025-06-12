@@ -82,43 +82,25 @@ jobs:
           AUTHOR_NAME: ${{ secrets.AUTHOR_NAME || 'Sanket Bhat' }}
           BLOG_TITLE: ${{ secrets.BLOG_TITLE || 'Diary of Sankey' }}
 
-      - name: Check for changes
-        id: changes
+      - name: Trigger Vercel Deployment
+        if: success()
         run: |
-          git add .
-          if git diff --staged --quiet; then
-            echo "No changes detected"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+          if [ -n "${{ secrets.VERCEL_DEPLOY_HOOK }}" ]; then
+            echo "🚀 Triggering Vercel deployment..."
+            curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
+            echo "✅ Deployment triggered successfully!"
           else
-            echo "Changes detected"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "⚠️  VERCEL_DEPLOY_HOOK not configured"
+            echo "📝 Set up deploy hook in Vercel dashboard → Settings → Git → Deploy Hooks"
+            echo "📝 Add the hook URL as VERCEL_DEPLOY_HOOK secret in GitHub"
           fi
 
-      - name: Commit and push changes
-        if: steps.changes.outputs.has_changes == 'true'
+      - name: Deployment Summary
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # Get current timestamp
-          timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          
-          # Count files changed
-          files_changed=$(git diff --staged --name-only | wc -l)
-          
-          git commit -m "🔄 Auto-sync: Updated $files_changed files from Notion + rebuilt site ($timestamp)"
-          git push
-
-      - name: Sync Summary
-        run: |
-          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
-            echo "✅ Content synced, built, and changes pushed to main branch"
-            echo "🚀 Deployment will be triggered automatically by Vercel"
-            echo "📄 Static site files generated and committed"
-          else
-            echo "ℹ️  No new content changes detected"
-            echo "📝 Blog is up to date with Notion"
-          fi
+          echo "✅ Content synced from Notion and site built successfully!"
+          echo "🚀 Vercel deployment triggered via webhook"
+          echo "📝 Blog content updated without polluting git history"
+          echo "🔗 Check deployment status at: https://vercel.com/dashboard"
 
       - name: Notify on failure
         if: failure()

@@ -13,7 +13,7 @@ module.exports = jest.fn().mockImplementation((options = {}) => {
   }
   const mockInstance = {
     // API connection and authentication
-    testConnection: jest.fn().mockResolvedValue(true),
+  testConnection: jest.fn().mockResolvedValue(true),
     getDatabaseSchema: jest.fn().mockResolvedValue({
       properties: {
         Title: { type: 'title' },
@@ -26,9 +26,9 @@ module.exports = jest.fn().mockImplementation((options = {}) => {
 
     // Database query methods
     queryDatabase: jest.fn().mockResolvedValue([]),
-    getPublishedPosts: jest.fn().mockResolvedValue([]),
-    getScheduledPosts: jest.fn().mockResolvedValue([]),
-    getDraftPosts: jest.fn().mockResolvedValue([]),
+  getPublishedPosts: jest.fn().mockResolvedValue([]),
+  getScheduledPosts: jest.fn().mockResolvedValue([]),
+  getDraftPosts: jest.fn().mockResolvedValue([]),
     getPostsByCategory: jest.fn().mockResolvedValue([]),
 
     // Page and content methods
@@ -39,7 +39,7 @@ module.exports = jest.fn().mockImplementation((options = {}) => {
         Status: { select: { name: 'Published' } }
       }
     }),
-    getPageBlocks: jest.fn().mockResolvedValue([]),
+  getPageBlocks: jest.fn().mockResolvedValue([]),
     pageToMarkdown: jest.fn().mockResolvedValue('# Test Content'),
 
     // Page operations

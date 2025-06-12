@@ -63,13 +63,13 @@ module.exports = {
   
   // Coverage thresholds - only apply when coverage is being collected
   ...(((process.env.COVERAGE === 'true') || process.argv.includes('--coverage')) && {
-    coverageThreshold: {
-      global: {
-        branches: 9,
-        functions: 9,
-        lines: 9,
-        statements: 9
-      }
+  coverageThreshold: {
+    global: {
+      branches: 9,
+      functions: 9,
+      lines: 9,
+      statements: 9
     }
+  }
   })
 }; 

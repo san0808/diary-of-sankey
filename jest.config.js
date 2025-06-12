@@ -9,8 +9,8 @@ module.exports = {
     '**/*.(test|spec).js'
   ],
   
-  // Coverage settings
-  collectCoverage: true,
+  // Coverage settings - only collect when explicitly requested
+  collectCoverage: process.env.COVERAGE === 'true' || process.argv.includes('--coverage'),
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   coveragePathIgnorePatterns: [
@@ -61,13 +61,15 @@ module.exports = {
     detectOpenHandles: true
   }),
   
-  // Coverage thresholds - start small and build up
-  coverageThreshold: {
-    global: {
-      branches: 9,
-      functions: 9,
-      lines: 9,
-      statements: 9
+  // Coverage thresholds - only apply when coverage is being collected
+  ...(((process.env.COVERAGE === 'true') || process.argv.includes('--coverage')) && {
+    coverageThreshold: {
+      global: {
+        branches: 9,
+        functions: 9,
+        lines: 9,
+        statements: 9
+      }
     }
-  }
+  })
 }; 

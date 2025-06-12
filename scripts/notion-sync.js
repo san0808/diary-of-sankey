@@ -100,7 +100,7 @@ class NotionSync {
     
     try {
       // Extract metadata from Notion page
-      const metadata = this.notionClient.extractMetadata(notionPage);
+      const metadata = await this.notionClient.extractMetadata(notionPage);
       
       logger.debug(`Processing post: ${metadata.title}`);
 
@@ -136,7 +136,8 @@ class NotionSync {
 
     } catch (error) {
       logger.error(`Failed to process post ${notionPage.id}`, error);
-      throw error;
+      postTimer();
+      return null;
     }
   }
 

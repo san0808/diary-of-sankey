@@ -26,12 +26,47 @@ jobs:
       - name: Run linting
         run: npm run lint
 
-      - name: Run tests
-        run: npm test
+      - name: Run unit tests
+        run: npm run test:unit -- --ci --coverage --watchAll=false --maxWorkers=2
         env:
           NODE_ENV: test
+          CI: true
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+
+      - name: Run integration tests
+        run: npm run test:integration -- --ci --watchAll=false --maxWorkers=1 --testTimeout=20000
+        env:
+          NODE_ENV: test
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+
+      - name: Generate combined coverage report
+        run: npm test -- --ci --coverage --watchAll=false --maxWorkers=2 --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage/
+          retention-days: 7
+
+      - name: Upload test results  
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            coverage/lcov.info
+            coverage/clover.xml
+          retention-days: 7
 
   content-validation:
     name: Content Validation

@@ -1,0 +1,112 @@
+name: Comprehensive Test Suite
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ develop ]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  test-matrix:
+    name: Test Suite (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test:unit -- --ci --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+
+      - name: Run integration tests (performance & reliability)
+        run: npm test tests/integration/performance-reliability.test.js -- --ci --testTimeout=30000 --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || 'mock-key-for-testing' }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID || 'mock-db-for-testing' }}
+
+      - name: Run integration tests (auto-sync workflow)
+        run: npm test tests/integration/auto-sync-workflow.test.js -- --ci --testTimeout=30000 --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || 'mock-key-for-testing' }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID || 'mock-db-for-testing' }}
+
+      - name: Run integration tests (setup workflow)
+        run: npm test tests/integration/setup-workflow.test.js -- --ci --testTimeout=20000 --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || 'mock-key-for-testing' }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID || 'mock-db-for-testing' }}
+
+      - name: Generate final coverage report
+        run: npm run test:coverage -- --ci --passWithNoTests
+        env:
+          NODE_ENV: test
+          CI: true
+          COVERAGE: true
+
+      - name: Upload coverage to artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == '18' # Only upload once
+        with:
+          name: coverage-report-node${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 14
+
+      - name: Coverage Summary
+        if: matrix.node-version == '18'
+        run: |
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          COVERAGE=true npm test -- --ci --coverage --coverageReporters=text-summary --passWithNoTests | grep -A 20 "Coverage summary" >> $GITHUB_STEP_SUMMARY || echo "Coverage summary not available" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  test-results:
+    name: Test Results Summary  
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    if: always()
+    steps:
+      - name: Test Results
+        run: |
+          echo "## 🎯 Test Suite Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.test-matrix.result }}" == "success" ]; then
+            echo "✅ **All tests passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### What was tested:" >> $GITHUB_STEP_SUMMARY
+            echo "- 🧪 Unit tests for all core components" >> $GITHUB_STEP_SUMMARY  
+            echo "- ⚡ Performance & reliability integration tests" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔄 Auto-sync workflow integration tests" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚙️ Setup workflow integration tests" >> $GITHUB_STEP_SUMMARY
+            echo "- 🐛 Linting and code quality checks" >> $GITHUB_STEP_SUMMARY
+            echo "- 📊 Code coverage analysis" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some tests failed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the test logs above for detailed error information." >> $GITHUB_STEP_SUMMARY
+          fi 

@@ -195,6 +195,11 @@ class ContentProcessor {
    * Process paragraph block
    */
   processParagraph(block) {
+    // Add null check to prevent crashes
+    if (!block.paragraph || !block.paragraph.rich_text) {
+      return '';
+    }
+    
     const text = this.extractRichText(block.paragraph.rich_text);
     if (!text.trim()) return '';
     
@@ -647,8 +652,15 @@ class ContentProcessor {
    * @returns {number} Word count
    */
   countWords(html) {
-    const text = html.replace(/<[^>]*>/g, ''); // Strip HTML tags
-    return text.split(/\s+/).filter(word => word.length > 0).length;
+    if (!html) return 0;
+    
+    // Strip HTML tags and decode entities  
+    const text = html.replace(/<[^>]*>/g, ' ').replace(/&[^;]+;/g, ' ');
+    
+    // Split on whitespace and filter out empty strings
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    
+    return words.length;
   }
 
   /**
@@ -716,7 +728,7 @@ class ContentProcessor {
   async cleanupUnusedImages() {
     if (!this.usedImages) {
       logger.debug('No image tracking enabled, skipping cleanup');
-      return;
+      return [];
     }
 
     try {
@@ -727,29 +739,32 @@ class ContentProcessor {
       const imagesDir = path.join(process.cwd(), config.build.outputDir, 'images', 'notion');
       
       if (!await fs.pathExists(imagesDir)) {
-        return;
+        return [];
       }
 
       const existingFiles = await fs.readdir(imagesDir);
-      let deletedCount = 0;
+      const deletedFiles = [];
 
       for (const file of existingFiles) {
         if (!this.usedImages.has(file)) {
           await fs.remove(path.join(imagesDir, file));
           logger.debug(`Cleaned up unused image: ${file}`);
-          deletedCount++;
+          deletedFiles.push(file);
         }
       }
 
-      if (deletedCount > 0) {
-        logger.info(`Cleaned up ${deletedCount} unused cached images`);
+      if (deletedFiles.length > 0) {
+        logger.info(`Cleaned up ${deletedFiles.length} unused cached images`);
       }
 
       // Reset for next sync
       this.usedImages.clear();
       
+      return deletedFiles;
+      
     } catch (error) {
       logger.warn('Failed to cleanup unused images', error);
+      return [];
     }
   }
 }

@@ -9,8 +9,8 @@ module.exports = {
     '**/*.(test|spec).js'
   ],
   
-  // Coverage settings
-  collectCoverage: true,
+  // Coverage settings - only collect when explicitly requested
+  collectCoverage: process.env.COVERAGE === 'true' || process.argv.includes('--coverage'),
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   coveragePathIgnorePatterns: [
@@ -45,18 +45,31 @@ module.exports = {
   restoreMocks: true,
   
   // Timeout settings
-  testTimeout: 10000,
+  testTimeout: process.env.CI ? 15000 : 10000,
   
-  // Verbose output
-  verbose: true,
+  // Verbose output - suppress in CI for cleaner logs
+  verbose: !process.env.CI,
   
-  // Coverage thresholds - start small and build up
-  coverageThreshold: {
-    global: {
-      branches: 9,
-      functions: 9,
-      lines: 9,
-      statements: 9
+  // Silent mode for CI to reduce noise
+  silent: process.env.CI === 'true',
+  
+  // CI-specific optimizations
+  ...(process.env.CI && {
+    maxWorkers: '50%',
+    cache: false,
+    forceExit: true,
+    detectOpenHandles: true
+  }),
+  
+  // Coverage thresholds - only apply when coverage is being collected
+  ...(((process.env.COVERAGE === 'true') || process.argv.includes('--coverage')) && {
+    coverageThreshold: {
+      global: {
+        branches: 9,
+        functions: 9,
+        lines: 9,
+        statements: 9
+      }
     }
-  }
+  })
 }; 

@@ -117,8 +117,8 @@ class SiteBuilder {
       publishedPosts: [],
       scheduledPosts: [],
       draftPosts: [],
-      categories: {},
-      tags: {}
+      categories: [],
+      tags: []
     };
     
     // Load posts index
@@ -135,18 +135,37 @@ class SiteBuilder {
       content.scheduledPosts = scheduledIndex.posts || [];
     }
     
-    // Load categories
+    // Load categories with proper error handling
     const categoriesIndexPath = path.join(this.contentDir, 'categories', 'index.json');
     if (await fs.pathExists(categoriesIndexPath)) {
-      const categoriesIndex = await fs.readJson(categoriesIndexPath);
-      content.categories = categoriesIndex.categories || [];
+      try {
+        const categoriesIndex = await fs.readJson(categoriesIndexPath);
+        // Ensure categories is always an array
+        if (categoriesIndex && Array.isArray(categoriesIndex.categories)) {
+          content.categories = categoriesIndex.categories;
+        } else {
+          logger.warn('Categories index exists but does not contain valid array structure');
+          content.categories = [];
+        }
+      } catch (error) {
+        logger.warn('Failed to parse categories index, using empty array', error);
+        content.categories = [];
+      }
+    } else {
+      logger.debug('Categories index not found, using empty array');
+      content.categories = [];
     }
     
     // Load tags
     const tagsIndexPath = path.join(this.contentDir, 'tags-index.json');
     if (await fs.pathExists(tagsIndexPath)) {
-      const tagsIndex = await fs.readJson(tagsIndexPath);
-      content.tags = tagsIndex.tags || [];
+      try {
+        const tagsIndex = await fs.readJson(tagsIndexPath);
+        content.tags = tagsIndex.tags || [];
+      } catch (error) {
+        logger.warn('Failed to parse tags index, using empty array', error);
+        content.tags = [];
+      }
     }
     
     logger.success(`Loaded ${content.publishedPosts.length} published posts, ${content.scheduledPosts.length} scheduled posts`);
@@ -214,8 +233,21 @@ class SiteBuilder {
     // Main blog page (all posts)
     await this.generateBlogListingPage(content.publishedPosts, '/blog', 'index.html', content);
     
-    // Category pages
-    for (const category of content.categories) {
+    // Category pages - ensure categories is iterable
+    const categories = Array.isArray(content.categories) ? content.categories : [];
+    
+    if (categories.length === 0) {
+      logger.debug('No categories found, skipping category page generation');
+      return;
+    }
+    
+    for (const category of categories) {
+      // Validate category structure
+      if (!category || typeof category !== 'object' || !category.name || !category.slug) {
+        logger.warn('Invalid category structure found, skipping:', category);
+        continue;
+      }
+      
       const categoryPosts = content.publishedPosts.filter(post => 
         post.category === category.name
       );
@@ -492,8 +524,14 @@ class SiteBuilder {
       priority: 1.0
     });
     
-    // Add category pages
-    for (const category of content.categories) {
+    // Add category pages - ensure categories is iterable
+    const categories = Array.isArray(content.categories) ? content.categories : [];
+    for (const category of categories) {
+      if (!category || !category.slug) {
+        logger.warn('Invalid category structure in sitemap generation, skipping:', category);
+        continue;
+      }
+      
       links.push({
         url: `/${category.slug}/`,
         changefreq: 'weekly',

@@ -111,7 +111,8 @@ describe('NotionSync', () => {
         totalPosts: 3, // All 3 mocked posts were processed
         published: 1,
         scheduled: 1,
-        drafts: 1
+        drafts: 1,
+        performance: expect.any(Object)
       });
     });
   });

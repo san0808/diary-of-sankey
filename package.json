@@ -22,7 +22,14 @@
     "quick-analytics": "node scripts/quick-analytics-setup.js",
     "setup-auto-sync": "node scripts/setup-auto-sync.js",
     "create-database": "node scripts/create-notion-database.js",
-    "create-database-simple": "node scripts/create-simple-database.js"
+    "create-database-simple": "node scripts/create-simple-database.js",
+    "test:performance": "jest tests/performance-optimizations.test.js",
+    "perf-monitor": "node scripts/performance-monitor.js",
+    "perf-report": "node scripts/performance-monitor.js report",
+    "perf-export": "node scripts/performance-monitor.js export",
+    "perf-clear": "node scripts/performance-monitor.js clear",
+    "sync:fast": "node scripts/notion-sync.js --concurrency 10",
+    "build:fast": "node scripts/build-site.js --incremental"
   },
   "keywords": [
     "blog",

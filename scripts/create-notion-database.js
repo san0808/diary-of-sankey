@@ -3,7 +3,6 @@
 const { Client } = require('@notionhq/client');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
-const logger = require('./utils/logger');
 
 /**
  * Fully Automated Notion Database Creator
@@ -852,7 +851,7 @@ class AutomatedNotionDatabaseCreator {
    */
   getPageTitle(page) {
     if (page.properties) {
-      for (const [key, value] of Object.entries(page.properties)) {
+      for (const [, value] of Object.entries(page.properties)) {
         if (value.type === 'title' && value.title && value.title.length > 0) {
           return value.title[0].plain_text;
         }

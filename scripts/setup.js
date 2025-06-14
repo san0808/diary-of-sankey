@@ -4,7 +4,6 @@ const inquirer = require('inquirer');
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
-const logger = require('./utils/logger');
 
 /**
  * Interactive setup script for Diary of Sankey blog system

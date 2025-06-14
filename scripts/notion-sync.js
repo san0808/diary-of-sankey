@@ -9,6 +9,58 @@ const ContentProcessor = require('./utils/content-processor');
 const config = require('../config/site.config');
 
 /**
+ * Performance utilities for monitoring and optimization
+ */
+class PerformanceTracker {
+  constructor() {
+    this.timers = new Map();
+    this.metrics = {};
+  }
+
+  startTimer(operation) {
+    this.timers.set(operation, Date.now());
+    logger.debug(`⏱️  Started: ${operation}`);
+  }
+
+  endTimer(operation) {
+    const startTime = this.timers.get(operation);
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      this.metrics[operation] = duration;
+      logger.info(`✅ Completed: ${operation} (${duration}ms)`);
+      this.timers.delete(operation);
+      return duration;
+    }
+    return 0;
+  }
+
+  trackMemory() {
+    const usage = process.memoryUsage();
+    this.metrics.memory = {
+      heapUsed: Math.round(usage.heapUsed / 1024 / 1024),
+      heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
+      external: Math.round(usage.external / 1024 / 1024)
+    };
+    return this.metrics.memory;
+  }
+
+  getMetrics() {
+    return { ...this.metrics };
+  }
+}
+
+/**
+ * Utility function to chunk array into smaller batches
+ */
+function chunk(array, size) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/**
  * Main class for syncing content from Notion to local files
  */
 class NotionSync {
@@ -18,6 +70,8 @@ class NotionSync {
     this.contentDir = path.join(process.cwd(), config.build.contentDir);
     this.force = options.force || false;
     this.dryRun = options.dryRun || false;
+    this.concurrency = options.concurrency || 5; // Process 5 posts concurrently
+    this.performanceTracker = new PerformanceTracker();
     
     // Ensure content directory exists
     fs.ensureDirSync(this.contentDir);
@@ -28,60 +82,82 @@ class NotionSync {
    */
   async sync() {
     const syncTimer = logger.timer('Notion sync');
+    this.performanceTracker.startTimer('total_sync');
     
     try {
-      logger.section('Starting Notion Sync');
+      logger.section('Starting Optimized Notion Sync');
+      
+      // Track initial memory usage
+      const initialMemory = this.performanceTracker.trackMemory();
+      logger.info(`Initial memory usage: ${initialMemory.heapUsed}MB`);
       
       // Test connection first
+      this.performanceTracker.startTimer('connection_test');
       const connectionOk = await this.notionClient.testConnection();
+      this.performanceTracker.endTimer('connection_test');
+      
       if (!connectionOk) {
         throw new Error('Failed to connect to Notion API');
       }
 
-      // Get all content from Notion
+      // Get all content from Notion in parallel
+      this.performanceTracker.startTimer('fetch_posts');
       const [publishedPosts, scheduledPosts, draftPosts] = await Promise.all([
         this.notionClient.getPublishedPosts(),
         this.notionClient.getScheduledPosts(),
         this.notionClient.getDraftPosts()
       ]);
+      this.performanceTracker.endTimer('fetch_posts');
 
       logger.info(`Found ${publishedPosts.length} published posts`);
       logger.info(`Found ${scheduledPosts.length} scheduled posts`);
       logger.info(`Found ${draftPosts.length} draft posts`);
 
-      // Process all posts
+      // Process all posts with parallel batching
       const allPosts = [...publishedPosts, ...scheduledPosts, ...draftPosts];
-      const processedPosts = [];
-
-      for (const post of allPosts) {
-        try {
-          const processedPost = await this.processPost(post);
-          if (processedPost) {
-            processedPosts.push(processedPost);
-          }
-        } catch (error) {
-          logger.error(`Failed to process post: ${post.id}`, error);
-          // Continue with other posts
-        }
-      }
+      this.performanceTracker.startTimer('process_posts');
+      const processedPosts = await this.processPostsInParallel(allPosts);
+      this.performanceTracker.endTimer('process_posts');
 
       // Generate index files
+      this.performanceTracker.startTimer('generate_indexes');
       await this.generateIndexes(processedPosts);
+      this.performanceTracker.endTimer('generate_indexes');
 
       // Clean up old content
+      this.performanceTracker.startTimer('cleanup');
       await this.cleanupOldContent(processedPosts);
-
+      
       // Clean up unused cached images (if image caching is enabled)
       await this.contentProcessor.cleanupUnusedImages();
+      this.performanceTracker.endTimer('cleanup');
 
-      logger.success(`Sync completed successfully! Processed ${processedPosts.length} posts`);
+      // Track final memory usage
+      const finalMemory = this.performanceTracker.trackMemory();
+      const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;
+      
+      // Log performance metrics
+      const totalTime = this.performanceTracker.endTimer('total_sync');
+      const metrics = this.performanceTracker.getMetrics();
+      
+      logger.success(`🚀 Sync completed successfully! Processed ${processedPosts.length} posts`);
+      logger.info(`📊 Performance Summary:`);
+      logger.info(`   Total time: ${totalTime}ms`);
+      logger.info(`   Posts processed: ${processedPosts.length}`);
+      logger.info(`   Average per post: ${Math.round(totalTime / processedPosts.length)}ms`);
+      logger.info(`   Memory usage: ${finalMemory.heapUsed}MB (${memoryIncrease >= 0 ? '+' : ''}${memoryIncrease}MB)`);
+      logger.info(`   Fetch time: ${metrics.fetch_posts}ms`);
+      logger.info(`   Processing time: ${metrics.process_posts}ms`);
+      logger.info(`   Index generation: ${metrics.generate_indexes}ms`);
+      
       syncTimer();
       
       return {
         totalPosts: processedPosts.length,
         published: publishedPosts.length,
         scheduled: scheduledPosts.length,
-        drafts: draftPosts.length
+        drafts: draftPosts.length,
+        performance: metrics
       };
 
     } catch (error) {
@@ -91,7 +167,81 @@ class NotionSync {
   }
 
   /**
-   * Process a single post from Notion
+   * Process posts in parallel batches for optimal performance
+   * @param {Array} allPosts - All posts to process
+   * @returns {Promise<Array>} Processed posts
+   */
+  async processPostsInParallel(allPosts) {
+    if (allPosts.length === 0) {
+      return [];
+    }
+
+    logger.info(`🔄 Processing ${allPosts.length} posts with concurrency: ${this.concurrency}`);
+    
+    // Split posts into batches for parallel processing
+    const batches = chunk(allPosts, this.concurrency);
+    const processedPosts = [];
+    let processedCount = 0;
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const batchTimer = `batch_${i + 1}`;
+      this.performanceTracker.startTimer(batchTimer);
+      
+      logger.info(`📦 Processing batch ${i + 1}/${batches.length} (${batch.length} posts)`);
+
+      try {
+        // Process batch in parallel with error handling
+        const batchPromises = batch.map(async (post, index) => {
+          try {
+            const result = await this.processPost(post);
+            processedCount++;
+            
+            // Log progress
+            if (processedCount % 5 === 0 || processedCount === allPosts.length) {
+              logger.info(`📈 Progress: ${processedCount}/${allPosts.length} posts processed`);
+            }
+            
+            return { status: 'fulfilled', value: result };
+          } catch (error) {
+            logger.error(`Failed to process post in batch ${i + 1}, position ${index}:`, error);
+            return { status: 'rejected', reason: error };
+          }
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        
+        // Collect successful results
+        const successfulResults = batchResults
+          .filter(result => result.status === 'fulfilled' && result.value)
+          .map(result => result.value);
+        
+        processedPosts.push(...successfulResults);
+        
+        // Log batch completion
+        const batchTime = this.performanceTracker.endTimer(batchTimer);
+        const successCount = successfulResults.length;
+        const failureCount = batch.length - successCount;
+        
+        logger.info(`✅ Batch ${i + 1} completed: ${successCount} success, ${failureCount} failed (${batchTime}ms)`);
+        
+        // Brief pause between batches to prevent overwhelming the API
+        if (i < batches.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+      } catch (error) {
+        logger.error(`Batch ${i + 1} failed completely:`, error);
+        this.performanceTracker.endTimer(batchTimer);
+      }
+    }
+
+    logger.success(`🎉 Parallel processing completed: ${processedPosts.length}/${allPosts.length} posts processed successfully`);
+    return processedPosts;
+  }
+
+  /**
+   * Process a single post from Notion with smart caching
    * @param {Object} notionPage - Notion page object
    * @returns {Promise<Object|null>} Processed post data
    */
@@ -99,21 +249,23 @@ class NotionSync {
     const postTimer = logger.timer(`Process post: ${notionPage.id}`);
     
     try {
-      // Extract metadata from Notion page
+      // Extract metadata from Notion page (lightweight operation)
       const metadata = await this.notionClient.extractMetadata(notionPage);
       
-      logger.debug(`Processing post: ${metadata.title}`);
+      logger.debug(`🔍 Checking post: ${metadata.title}`);
 
-      // Check if we need to update this post
+      // Smart caching: Check if we need to update this post
       const existingPost = await this.getExistingPost(metadata.slug);
       const shouldUpdate = this.shouldUpdatePost(existingPost, metadata);
       
       if (!shouldUpdate && !this.force) {
-        logger.debug(`Skipping unchanged post: ${metadata.title}`);
+        logger.debug(`⚡ Cache hit: Skipping unchanged post: ${metadata.title}`);
+        postTimer();
         return existingPost;
       }
 
-      // Get page content blocks
+      // Only fetch content blocks if we need to update
+      logger.debug(`🔄 Processing updated post: ${metadata.title}`);
       const blocks = await this.notionClient.getPageBlocks(notionPage.id);
       
       // Process content
@@ -123,19 +275,20 @@ class NotionSync {
       const postData = {
         ...metadata,
         ...processedContent,
-        lastSynced: new Date().toISOString()
+        lastSynced: new Date().toISOString(),
+        syncVersion: '2.0' // Track sync version for future optimizations
       };
 
       // Save the post
       await this.savePost(postData);
       
-      logger.success(`Processed: ${metadata.title}`);
+      logger.success(`✅ Processed: ${metadata.title}`);
       postTimer();
       
       return postData;
 
     } catch (error) {
-      logger.error(`Failed to process post ${notionPage.id}`, error);
+      logger.error(`❌ Failed to process post ${notionPage.id}`, error);
       postTimer();
       return null;
     }

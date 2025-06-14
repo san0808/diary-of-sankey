@@ -2,12 +2,94 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const Handlebars = require('handlebars');
-const RSS = require('rss');
+const handlebars = require('handlebars');
 const { SitemapStream, streamToPromise } = require('sitemap');
-const { format, parseISO } = require('date-fns');
+const RSS = require('rss');
+const { parseISO, format } = require('date-fns');
 const logger = require('./utils/logger');
 const config = require('../config/site.config');
+
+/**
+ * Build cache for incremental builds
+ */
+class BuildCache {
+  constructor() {
+    this.cacheFile = path.join(process.cwd(), '.build-cache.json');
+    this.cache = this.loadCache();
+  }
+
+  loadCache() {
+    try {
+      if (fs.existsSync(this.cacheFile)) {
+        return fs.readJsonSync(this.cacheFile);
+      }
+    } catch (error) {
+      logger.warn('Failed to load build cache, starting fresh', error);
+    }
+    
+    return {
+      lastBuild: null,
+      fileHashes: {},
+      generatedFiles: {},
+      buildVersion: '2.0'
+    };
+  }
+
+  saveCache() {
+    try {
+      fs.writeJsonSync(this.cacheFile, this.cache, { spaces: 2 });
+    } catch (error) {
+      logger.warn('Failed to save build cache', error);
+    }
+  }
+
+  getFileHash(filePath) {
+    try {
+      const stats = fs.statSync(filePath);
+      return `${stats.mtime.getTime()}-${stats.size}`;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  hasFileChanged(filePath) {
+    const currentHash = this.getFileHash(filePath);
+    const cachedHash = this.cache.fileHashes[filePath];
+    
+    if (currentHash !== cachedHash) {
+      this.cache.fileHashes[filePath] = currentHash;
+      return true;
+    }
+    
+    return false;
+  }
+
+  markFileGenerated(filePath, dependencies = []) {
+    this.cache.generatedFiles[filePath] = {
+      timestamp: Date.now(),
+      dependencies: dependencies
+    };
+  }
+
+  shouldRebuildFile(filePath, dependencies = []) {
+    const fileInfo = this.cache.generatedFiles[filePath];
+    
+    // Always rebuild if file doesn't exist or not in cache
+    if (!fs.existsSync(filePath) || !fileInfo) {
+      return true;
+    }
+
+    // Check if any dependencies have changed
+    for (const dep of dependencies) {
+      if (this.hasFileChanged(dep)) {
+        logger.debug(`Dependency changed: ${dep}, rebuilding ${filePath}`);
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
 
 /**
  * Static site builder that generates HTML from processed content
@@ -24,50 +106,85 @@ class SiteBuilder {
     fs.ensureDirSync(this.outputDir);
     
     // Initialize Handlebars
-    this.handlebars = Handlebars.create();
+    this.handlebars = handlebars.create();
     this.setupHandlebarsHelpers();
+    
+    this.templates = {};
+    this.pageCount = 0;
+    this.buildCache = new BuildCache();
+    
+    // Performance tracking
+    this.performanceMetrics = {
+      startTime: Date.now(),
+      templatesLoaded: 0,
+      pagesGenerated: 0,
+      filesSkipped: 0,
+      cacheHits: 0
+    };
   }
 
   /**
-   * Main build method
+   * Main build method with incremental optimization
    */
   async build() {
     const buildTimer = logger.timer('Site build');
     
     try {
-      logger.section('Building Static Site');
+      logger.section('🏗️  Starting Optimized Site Build');
       
-      // Load templates
+      // Track build start
+      this.performanceMetrics.startTime = Date.now();
+      
+      // Load templates (with caching)
       await this.loadTemplates();
       
       // Load content
       const content = await this.loadContent();
       
-      // Copy static assets
-      await this.copyStaticAssets();
+      // Copy static assets (only if changed)
+      await this.copyStaticAssetsIncremental();
       
-      // Generate pages
+      // Generate pages with incremental builds
       await this.generateHomePage(content);
       await this.generateBlogPages(content);
       await this.generatePostPages(content);
       await this.generateCategoryPages(content);
       
-      // Generate feeds and sitemaps
+      // Generate feeds and sitemaps (only if content changed)
       if (config.content.enableRss) {
-        await this.generateRSSFeed(content.publishedPosts);
+        await this.generateRSSFeedIncremental(content.publishedPosts);
       }
       
       if (config.content.enableSitemap) {
-        await this.generateSitemap(content);
+        await this.generateSitemapIncremental(content);
       }
       
-      logger.success('Site build completed successfully!');
+      // Update build cache
+      this.buildCache.cache.lastBuild = Date.now();
+      this.buildCache.saveCache();
+      
+      // Log performance metrics
+      const totalTime = Date.now() - this.performanceMetrics.startTime;
+      logger.success('🚀 Optimized site build completed!');
+      logger.info('📊 Build Performance Summary:');
+      logger.info(`   Total time: ${totalTime}ms`);
+      logger.info(`   Pages generated: ${this.performanceMetrics.pagesGenerated}`);
+      logger.info(`   Files skipped (cached): ${this.performanceMetrics.filesSkipped}`);
+      logger.info(`   Cache hit rate: ${Math.round((this.performanceMetrics.cacheHits / (this.performanceMetrics.pagesGenerated + this.performanceMetrics.filesSkipped)) * 100)}%`);
+      logger.info(`   Templates loaded: ${this.performanceMetrics.templatesLoaded}`);
+      
       buildTimer();
       
       return {
         totalPages: this.pageCount || 0,
         publishedPosts: content.publishedPosts.length,
-        scheduledPosts: content.scheduledPosts.length
+        scheduledPosts: content.scheduledPosts.length,
+        performance: {
+          totalTime,
+          pagesGenerated: this.performanceMetrics.pagesGenerated,
+          filesSkipped: this.performanceMetrics.filesSkipped,
+          cacheHitRate: Math.round((this.performanceMetrics.cacheHits / (this.performanceMetrics.pagesGenerated + this.performanceMetrics.filesSkipped)) * 100)
+        }
       };
       
     } catch (error) {
@@ -77,12 +194,10 @@ class SiteBuilder {
   }
 
   /**
-   * Load and compile all templates
+   * Load templates with caching
    */
   async loadTemplates() {
-    logger.info('Loading templates...');
-    
-    this.templates = {};
+    logger.info('📄 Loading templates...');
     
     const templateFiles = [
       'base.html',
@@ -90,21 +205,32 @@ class SiteBuilder {
       'blog-list.html',
       'blog-post.html'
     ];
+
+    let templatesChanged = false;
     
     for (const templateFile of templateFiles) {
       const templatePath = path.join(this.templatesDir, templateFile);
       
-      if (await fs.pathExists(templatePath)) {
-        const templateSource = await fs.readFile(templatePath, 'utf8');
+      if (this.buildCache.hasFileChanged(templatePath)) {
+        templatesChanged = true;
+        logger.debug(`Template changed: ${templateFile}`);
+      }
+      
+      if (fs.existsSync(templatePath)) {
+        const templateContent = await fs.readFile(templatePath, 'utf8');
         const templateName = path.basename(templateFile, '.html');
-        this.templates[templateName] = this.handlebars.compile(templateSource);
-        logger.debug(`Loaded template: ${templateName}`);
-      } else {
-        logger.warn(`Template not found: ${templateFile}`);
+        this.templates[templateName] = this.handlebars.compile(templateContent);
+        this.performanceMetrics.templatesLoaded++;
       }
     }
-    
-    logger.success(`Loaded ${Object.keys(this.templates).length} templates`);
+
+    // If templates changed, force rebuild of all pages
+    if (templatesChanged && !this.force) {
+      logger.info('🔄 Templates changed, forcing full rebuild');
+      this.force = true;
+    }
+
+    logger.success(`Loaded ${this.performanceMetrics.templatesLoaded} templates`);
   }
 
   /**
@@ -190,6 +316,108 @@ class SiteBuilder {
     } else {
       logger.info('No static assets directory found');
     }
+  }
+
+  /**
+   * Copy static assets to output directory (incremental)
+   */
+  async copyStaticAssetsIncremental() {
+    logger.info('📁 Copying static assets...');
+    
+    if (!await fs.pathExists(this.staticDir)) {
+      logger.warn('Static directory not found, skipping asset copy');
+      return;
+    }
+
+    const staticFiles = await this.getAllFiles(this.staticDir);
+    let copiedCount = 0;
+    let skippedCount = 0;
+
+    for (const file of staticFiles) {
+      const relativePath = path.relative(this.staticDir, file);
+      const outputPath = path.join(this.outputDir, relativePath);
+      
+      // Check if file needs to be copied
+      if (this.force || this.buildCache.shouldRebuildFile(outputPath, [file])) {
+        await fs.ensureDir(path.dirname(outputPath));
+        await fs.copy(file, outputPath);
+        this.buildCache.markFileGenerated(outputPath, [file]);
+        copiedCount++;
+        this.performanceMetrics.pagesGenerated++;
+      } else {
+        skippedCount++;
+        this.performanceMetrics.filesSkipped++;
+        this.performanceMetrics.cacheHits++;
+      }
+    }
+
+    logger.success(`Static assets: ${copiedCount} copied, ${skippedCount} skipped (cached)`);
+  }
+
+  /**
+   * Get all files recursively from a directory
+   */
+  async getAllFiles(dir) {
+    const files = [];
+    
+    async function traverse(currentDir) {
+      const items = await fs.readdir(currentDir);
+      
+      for (const item of items) {
+        const fullPath = path.join(currentDir, item);
+        const stat = await fs.stat(fullPath);
+        
+        if (stat.isDirectory()) {
+          await traverse(fullPath);
+        } else {
+          files.push(fullPath);
+        }
+      }
+    }
+    
+    await traverse(dir);
+    return files;
+  }
+
+  /**
+   * Generate RSS feed (incremental)
+   */
+  async generateRSSFeedIncremental(posts) {
+    const rssPath = path.join(this.outputDir, 'rss.xml');
+    const contentPaths = posts.map(post => path.join(this.contentDir, 'posts', `${post.slug}.json`));
+    
+    if (!this.force && !this.buildCache.shouldRebuildFile(rssPath, contentPaths)) {
+      logger.debug('RSS feed unchanged, skipping');
+      this.performanceMetrics.filesSkipped++;
+      this.performanceMetrics.cacheHits++;
+      return;
+    }
+
+    await this.generateRSSFeed(posts);
+    this.buildCache.markFileGenerated(rssPath, contentPaths);
+    this.performanceMetrics.pagesGenerated++;
+  }
+
+  /**
+   * Generate sitemap (incremental)
+   */
+  async generateSitemapIncremental(content) {
+    const sitemapPath = path.join(this.outputDir, 'sitemap.xml');
+    const contentPaths = [
+      ...content.publishedPosts.map(post => path.join(this.contentDir, 'posts', `${post.slug}.json`)),
+      path.join(this.contentDir, 'posts-index.json')
+    ];
+    
+    if (!this.force && !this.buildCache.shouldRebuildFile(sitemapPath, contentPaths)) {
+      logger.debug('Sitemap unchanged, skipping');
+      this.performanceMetrics.filesSkipped++;
+      this.performanceMetrics.cacheHits++;
+      return;
+    }
+
+    await this.generateSitemap(content);
+    this.buildCache.markFileGenerated(sitemapPath, contentPaths);
+    this.performanceMetrics.pagesGenerated++;
   }
 
   /**
@@ -691,7 +919,7 @@ class SiteBuilder {
     
     // Or helper
     this.handlebars.registerHelper('or', (...args) => {
-      const options = args.pop();
+      args.pop(); // Remove options object
       return args.some(Boolean);
     });
     
@@ -766,4 +994,5 @@ if (require.main === module) {
   main();
 }
 
+module.exports = SiteBuilder; 
 module.exports = SiteBuilder; 

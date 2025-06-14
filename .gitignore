@@ -139,3 +139,5 @@ webhooks/
 
 # Local serve files
 serve.json
+.build-cache.json
+.performance-metrics.json

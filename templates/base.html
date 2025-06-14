@@ -39,6 +39,11 @@
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="/css/custom.css">
   
+  <!-- Advanced Analytics Script -->
+  {{#if analytics.googleAnalyticsId}}
+  <script src="/js/analytics.js" defer></script>
+  {{/if}}
+  
   <!-- Math Support -->
   {{#if enableMath}}
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -72,8 +77,14 @@
     gtag("js", new Date());
     gtag("config", "{{analytics.googleAnalyticsId}}", {
       page_title: "{{#if pageTitle}}{{pageTitle}}{{else}}{{site.title}}{{/if}}",
-      page_location: "{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}"
+      page_location: "{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}",
+      // Enhanced tracking
+      send_page_view: true,
+      allow_google_signals: true,
+      allow_ad_personalization_signals: false
     });
+
+
   </script>
   {{/if}}
   
@@ -132,7 +143,7 @@
   {{/if}}
 </head>
 
-<body class="w-full max-w-[90%] md:w-[{{#if isPost}}50{{else}}43{{/if}}%] mx-auto" style="background-color: var(--warm-bg-primary);">
+<body class="w-full max-w-[90%] md:w-[{{#if isPost}}50{{else}}43{{/if}}%] mx-auto{{#if isPost}} blog-post{{/if}}" style="background-color: var(--warm-bg-primary);">
   <!-- Navigation -->
   <nav class="mt-6">
     <div>

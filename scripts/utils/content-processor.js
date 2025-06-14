@@ -381,7 +381,7 @@ class ContentProcessor {
   /**
    * Process table block
    */
-  processTable(_block) {
+  processTable() {
     // Note: Table processing would require additional API calls to get table rows
     // This is a simplified version
     return `<div class="my-6 overflow-x-auto">
@@ -394,7 +394,7 @@ class ContentProcessor {
   /**
    * Process divider block
    */
-  processDivider(_block) {
+  processDivider() {
     return `<hr class="my-8 border-gray-300" />`;
   }
 

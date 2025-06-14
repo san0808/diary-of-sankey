@@ -5,6 +5,7 @@ const path = require('path');
 const handlebars = require('handlebars');
 const { SitemapStream, streamToPromise } = require('sitemap');
 const RSS = require('rss');
+const { parseISO, format } = require('date-fns');
 const logger = require('./utils/logger');
 const config = require('../config/site.config');
 
@@ -918,7 +919,7 @@ class SiteBuilder {
     
     // Or helper
     this.handlebars.registerHelper('or', (...args) => {
-      const options = args.pop();
+      args.pop(); // Remove options object
       return args.some(Boolean);
     });
     

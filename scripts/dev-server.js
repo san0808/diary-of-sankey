@@ -9,7 +9,6 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
-const logger = require('./utils/logger');
 const config = require('../config/site.config');
 
 class DevServer {

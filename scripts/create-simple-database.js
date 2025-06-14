@@ -188,7 +188,7 @@ async function createDatabase() {
 // Run if called directly
 if (require.main === module) {
   createDatabase()
-    .then(databaseId => {
+    .then(() => {
       console.log(chalk.green.bold('\n✨ All done! Happy blogging! 📝\n'));
       process.exit(0);
     })

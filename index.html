@@ -31,9 +31,37 @@
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="/css/custom.css">
   
+  <!-- Advanced Analytics Script -->
+  <script src="/js/analytics.js" defer></script>
+  
   <!-- Math Support -->
   
   <!-- Analytics -->
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BGDKXKTPBQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-BGDKXKTPBQ", {
+      page_title: "Blog",
+      page_location: "https://diary.devsanket.com/blog",
+      // Enhanced tracking
+      send_page_view: true,
+      allow_google_signals: true,
+      allow_ad_personalization_signals: false
+    });
+
+
+  </script>
+  
+  <!-- Plausible Analytics (Privacy-focused) -->
+  <script defer data-domain="blog.devsanket.com" src="https://plausible.io/js/script.js"></script>
+  
+  
+  
   
   <!-- RSS Feed -->
   <link rel="alternate" type="application/rss+xml" title="Diary of Sankey RSS Feed" href="https://diary.devsanket.com/rss.xml" />

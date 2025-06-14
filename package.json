@@ -18,6 +18,8 @@
     "lint": "eslint scripts/ --ext .js",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "setup": "node scripts/setup.js",
+    "setup-analytics": "node scripts/setup-analytics.js",
+    "quick-analytics": "node scripts/quick-analytics-setup.js",
     "setup-auto-sync": "node scripts/setup-auto-sync.js",
     "create-database": "node scripts/create-notion-database.js",
     "create-database-simple": "node scripts/create-simple-database.js"

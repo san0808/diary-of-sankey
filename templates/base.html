@@ -62,6 +62,7 @@
   
   <!-- Analytics -->
   {{#if analytics.googleAnalyticsId}}
+  <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id={{analytics.googleAnalyticsId}}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -69,8 +70,35 @@
       dataLayer.push(arguments);
     }
     gtag("js", new Date());
-    gtag("config", "{{analytics.googleAnalyticsId}}");
+    gtag("config", "{{analytics.googleAnalyticsId}}", {
+      page_title: "{{#if pageTitle}}{{pageTitle}}{{else}}{{site.title}}{{/if}}",
+      page_location: "{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}"
+    });
   </script>
+  {{/if}}
+  
+  {{#if analytics.plausible.enabled}}
+  <!-- Plausible Analytics (Privacy-focused) -->
+  <script defer data-domain="{{analytics.plausible.domain}}" src="https://plausible.io/js/script.js"></script>
+  {{/if}}
+  
+  {{#if analytics.vercel.enabled}}
+  <!-- Vercel Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  {{/if}}
+  
+  {{#if analytics.simpleAnalytics.enabled}}
+  <!-- Simple Analytics (Privacy-focused) -->
+  <script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+  <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
+  {{/if}}
+  
+  {{#if analytics.custom.enabled}}
+  <!-- Custom Analytics -->
+  {{{analytics.custom.trackingCode}}}
   {{/if}}
   
   <!-- RSS Feed -->

@@ -93,7 +93,30 @@ module.exports = {
   // External services
   services: {
     analytics: {
-      googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID
+      // Google Analytics 4
+      googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID,
+      
+      // Plausible Analytics (privacy-focused alternative)
+      plausible: {
+        domain: process.env.PLAUSIBLE_DOMAIN || process.env.SITE_URL?.replace('https://', '').replace('http://', ''),
+        enabled: process.env.ENABLE_PLAUSIBLE === 'true'
+      },
+      
+      // Vercel Analytics (built-in with Vercel hosting)
+      vercel: {
+        enabled: process.env.ENABLE_VERCEL_ANALYTICS !== 'false' && process.env.VERCEL === '1'
+      },
+      
+      // Simple Analytics (privacy-focused)
+      simpleAnalytics: {
+        enabled: process.env.ENABLE_SIMPLE_ANALYTICS === 'true'
+      },
+      
+      // Custom analytics tracking
+      custom: {
+        enabled: process.env.ENABLE_CUSTOM_ANALYTICS === 'true',
+        trackingCode: process.env.CUSTOM_ANALYTICS_CODE
+      }
     },
     webhook: {
       secret: process.env.WEBHOOK_SECRET

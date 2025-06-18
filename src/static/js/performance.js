@@ -4,6 +4,37 @@
 (function() {
   'use strict';
 
+  // CSS loading optimization
+  const cssLoader = {
+    loadNonCriticalCSS: function() {
+      // Load non-critical CSS asynchronously
+      const nonCriticalCSS = document.createElement('link');
+      nonCriticalCSS.rel = 'stylesheet';
+      nonCriticalCSS.href = '/static/css/non-critical.css';
+      nonCriticalCSS.media = 'print';
+      nonCriticalCSS.onload = function() {
+        this.media = 'all';
+        // Show content that was hidden for progressive enhancement
+        document.querySelectorAll('.non-critical').forEach(el => {
+          el.style.opacity = '1';
+        });
+      };
+      document.head.appendChild(nonCriticalCSS);
+    },
+
+    // Prevent FOUC (Flash of Unstyled Content)
+    preventFOUC: function() {
+      // Add a class to enable progressive enhancement
+      document.documentElement.classList.add('css-loading');
+      
+      // Remove after all CSS is loaded
+      window.addEventListener('load', function() {
+        document.documentElement.classList.remove('css-loading');
+        document.documentElement.classList.add('css-loaded');
+      });
+    }
+  };
+
   // Performance configuration
   const PERFORMANCE_CONFIG = {
     prefetch: {
@@ -372,6 +403,10 @@
   // Initialize all performance optimizations
   function initializePerformanceOptimizations() {
     console.log('🚀 Initializing performance optimizations...');
+    
+    // Initialize CSS loading optimizations immediately
+    cssLoader.preventFOUC();
+    cssLoader.loadNonCriticalCSS();
     
     linkPrefetcher.init();
     resourceOptimizer.init();

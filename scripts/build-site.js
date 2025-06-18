@@ -148,6 +148,10 @@ class SiteBuilder {
       // Generate asset versions for cache busting
       await this.generateAssetVersions();
       
+      // Generate critical CSS for render optimization
+      await this.generateCriticalCSS();
+      await this.generateNonCriticalCSS();
+      
       // Copy static assets (only if changed)
       await this.copyStaticAssetsIncremental();
       
@@ -986,6 +990,156 @@ class SiteBuilder {
       .replace(/-+/g, '-')
       .trim('-');
   }
+
+  /**
+   * Generate critical CSS containing only above-the-fold styles
+   */
+  async generateCriticalCSS() {
+    const logger = require('./utils/logger');
+    logger.info('🎨 Generating critical CSS...');
+
+    const criticalCSS = `
+/* Critical CSS - Above-the-fold styles only */
+:root {
+  --warm-bg-primary: #fefbf3;
+  --warm-bg-secondary: #faf6eb;
+  --warm-text-primary: #2d1b0f;
+  --warm-text-secondary: #5c3f2a;
+  --warm-text-muted: #8b6f47;
+  --warm-text-accent: #d4915c;
+  --warm-border-light: #e8dfc9;
+  --warm-border-medium: #ddd1b8;
+}
+
+/* Essential layout styles */
+body {
+  background-color: var(--warm-bg-primary);
+  color: var(--warm-text-primary);
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Critical navigation styles */
+nav {
+  margin-top: 1.5rem;
+}
+
+nav h1 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 2.25rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+nav a {
+  color: var(--warm-text-primary);
+  text-decoration: none;
+  transition: color 0.15s ease-out;
+}
+
+nav a:hover {
+  color: var(--warm-text-accent);
+}
+
+/* Critical layout utilities */
+.w-full { width: 100%; }
+.max-w-\\[90\\%\\] { max-width: 90%; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 1.25rem; }
+.mt-3 { margin-top: 0.75rem; }
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-5 { gap: 1.25rem; }
+.text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+.font-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+.relative { position: relative; }
+.font-semibold { font-weight: 600; }
+
+/* Critical responsive styles */
+@media (min-width: 768px) {
+  .md\\:w-\\[43\\%\\] { width: 43%; }
+  .md\\:w-\\[50\\%\\] { width: 50%; }
+}
+
+/* Hide non-critical content initially */
+.non-critical { opacity: 0; }
+`;
+
+    const fs = require('fs').promises;
+    const path = require('path');
+    
+    // Ensure static/css directory exists
+    const cssDir = path.join(this.staticDir, 'css');
+    await fs.mkdir(cssDir, { recursive: true });
+    
+    // Write critical CSS
+    const criticalPath = path.join(cssDir, 'critical.css');
+    await fs.writeFile(criticalPath, criticalCSS.trim());
+    
+    logger.success(`✅ Critical CSS generated: ${criticalPath}`);
+    return criticalPath;
+  }
+
+  /**
+   * Generate optimized non-critical CSS
+   */
+  async generateNonCriticalCSS() {
+    const logger = require('./utils/logger');
+    const fs = require('fs').promises;
+    const path = require('path');
+    
+    logger.info('🎨 Processing non-critical CSS...');
+    
+    // Read existing custom CSS
+    const customCSSPath = path.join('src/static/css/custom.css');
+    let customCSS = '';
+    
+    try {
+      customCSS = await fs.readFile(customCSSPath, 'utf8');
+    } catch (error) {
+      logger.warn('⚠️ Custom CSS file not found, creating minimal version');
+    }
+    
+    // Remove critical styles from non-critical CSS and add optimizations
+    const nonCriticalCSS = `
+/* Non-critical CSS - Below-the-fold and enhanced styles */
+${customCSS}
+
+/* Progressive enhancement */
+.non-critical {
+  opacity: 1;
+  transition: opacity 0.3s ease-in;
+}
+
+/* Enhanced interactions that can load later */
+.post-link:hover {
+  background: linear-gradient(135deg, var(--warm-bg-hover), var(--warm-bg-tertiary)) !important;
+  transition: all 0.15s ease-out;
+  border-radius: 8px;
+}
+
+/* Code highlighting and complex layouts */
+.prose pre, .blog-post pre {
+  position: relative;
+  background: var(--warm-bg-code) !important;
+  border: 1px solid var(--warm-border-light) !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  overflow-x: auto;
+  margin: 16px 0;
+  box-shadow: 0 1px 3px rgba(212, 145, 92, 0.1);
+}
+`;
+
+    const nonCriticalPath = path.join(this.staticDir, 'css', 'non-critical.css');
+    await fs.writeFile(nonCriticalPath, nonCriticalCSS.trim());
+    
+    logger.success(`✅ Non-critical CSS generated: ${nonCriticalPath}`);
+    return nonCriticalPath;
+  }
 }
 
 /**
@@ -1036,5 +1190,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = SiteBuilder; 
 module.exports = SiteBuilder; 

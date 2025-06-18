@@ -515,6 +515,8 @@ describe('SiteBuilder', () => {
       });
       siteBuilder.copyStaticAssetsIncremental = jest.fn().mockResolvedValue();
       siteBuilder.generateAssetVersions = jest.fn().mockResolvedValue();
+      siteBuilder.generateCriticalCSS = jest.fn().mockResolvedValue();
+      siteBuilder.generateNonCriticalCSS = jest.fn().mockResolvedValue();
       siteBuilder.generateHomePage = jest.fn().mockResolvedValue();
       siteBuilder.generateBlogPages = jest.fn().mockResolvedValue();
       siteBuilder.generatePostPages = jest.fn().mockResolvedValue();
@@ -530,6 +532,8 @@ describe('SiteBuilder', () => {
       expect(siteBuilder.loadContent).toHaveBeenCalled();
       expect(siteBuilder.copyStaticAssetsIncremental).toHaveBeenCalled();
       expect(siteBuilder.generateAssetVersions).toHaveBeenCalled();
+      expect(siteBuilder.generateCriticalCSS).toHaveBeenCalled();
+      expect(siteBuilder.generateNonCriticalCSS).toHaveBeenCalled();
       expect(siteBuilder.generateHomePage).toHaveBeenCalled();
       expect(siteBuilder.generateBlogPages).toHaveBeenCalled();
       expect(siteBuilder.generatePostPages).toHaveBeenCalled();

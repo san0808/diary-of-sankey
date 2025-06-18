@@ -1,0 +1,67 @@
+/* Critical CSS - Above-the-fold styles only */
+:root {
+  --warm-bg-primary: #fefbf3;
+  --warm-bg-secondary: #faf6eb;
+  --warm-text-primary: #2d1b0f;
+  --warm-text-secondary: #5c3f2a;
+  --warm-text-muted: #8b6f47;
+  --warm-text-accent: #d4915c;
+  --warm-border-light: #e8dfc9;
+  --warm-border-medium: #ddd1b8;
+}
+
+/* Essential layout styles */
+body {
+  background-color: var(--warm-bg-primary);
+  color: var(--warm-text-primary);
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Critical navigation styles */
+nav {
+  margin-top: 1.5rem;
+}
+
+nav h1 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 2.25rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+nav a {
+  color: var(--warm-text-primary);
+  text-decoration: none;
+  transition: color 0.15s ease-out;
+}
+
+nav a:hover {
+  color: var(--warm-text-accent);
+}
+
+/* Critical layout utilities */
+.w-full { width: 100%; }
+.max-w-\[90\%\] { max-width: 90%; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 1.25rem; }
+.mt-3 { margin-top: 0.75rem; }
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-5 { gap: 1.25rem; }
+.text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+.font-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+.relative { position: relative; }
+.font-semibold { font-weight: 600; }
+
+/* Critical responsive styles */
+@media (min-width: 768px) {
+  .md\:w-\[43\%\] { width: 43%; }
+  .md\:w-\[50\%\] { width: 50%; }
+}
+
+/* Hide non-critical content initially */
+.non-critical { opacity: 0; }

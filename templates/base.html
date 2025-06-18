@@ -35,9 +35,31 @@
   <link rel="icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   
-  <!-- Stylesheets -->
-  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="{{asset 'css/custom.css'}}">
+  <!-- Critical CSS - Loaded directly -->
+  <link rel="stylesheet" href="{{asset 'css/critical.css'}}">
+  
+  <!-- Resource hints for better performance -->
+  
+  <!-- DNS prefetch for external resources -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  <link rel="dns-prefetch" href="//www.googletagmanager.com">
+  <link rel="dns-prefetch" href="//unpkg.com">
+  
+  <!-- Preload and defer non-critical CSS -->
+  <link rel="preload" href="{{asset 'css/non-critical.css'}}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{{asset 'css/non-critical.css'}}"></noscript>
+  
+  <!-- Load Tailwind CSS asynchronously -->
+  <link rel="preload" href="https://unpkg.com/@tailwindcss/browser@4" as="script">
+  <script>
+    // Load Tailwind CSS asynchronously after page load
+    window.addEventListener('load', function() {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@tailwindcss/browser@4';
+      script.async = true;
+      document.head.appendChild(script);
+    });
+  </script>
   
   <!-- Performance Optimization Script -->
   <script src="{{asset 'js/performance.js'}}" defer></script>
@@ -68,10 +90,29 @@
   </script>
   {{/if}}
   
-  <!-- Analytics -->
+  <!-- Analytics - Deferred for performance -->
   {{#if analytics.googleAnalyticsId}}
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{analytics.googleAnalyticsId}}"></script>
+  <!-- Google Analytics 4 - Load after page interaction -->
+  <script>
+    // Load GA only after user interaction or after 3 seconds
+    let gaLoaded = false;
+    function loadGA() {
+      if (gaLoaded) return;
+      gaLoaded = true;
+      const script = document.createElement('script');
+      script.src = 'https://www.googletagmanager.com/gtag/js?id={{analytics.googleAnalyticsId}}';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    
+    // Load GA on user interaction
+    ['mousedown', 'touchstart'].forEach(event => {
+      document.addEventListener(event, loadGA, { once: true });
+    });
+    
+    // Fallback: load after 3 seconds
+    setTimeout(loadGA, 3000);
+  </script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() {

@@ -8,6 +8,7 @@ const RSS = require('rss');
 const { parseISO, format } = require('date-fns');
 const logger = require('./utils/logger');
 const config = require('../config/site.config');
+const crypto = require('crypto');
 
 /**
  * Build cache for incremental builds
@@ -113,6 +114,9 @@ class SiteBuilder {
     this.pageCount = 0;
     this.buildCache = new BuildCache();
     
+    // Asset versioning for cache busting
+    this.assetVersions = {};
+    
     // Performance tracking
     this.performanceMetrics = {
       startTime: Date.now(),
@@ -140,6 +144,9 @@ class SiteBuilder {
       
       // Load content
       const content = await this.loadContent();
+      
+      // Generate asset versions for cache busting
+      await this.generateAssetVersions();
       
       // Copy static assets (only if changed)
       await this.copyStaticAssetsIncremental();
@@ -352,6 +359,35 @@ class SiteBuilder {
     }
 
     logger.success(`Static assets: ${copiedCount} copied, ${skippedCount} skipped (cached)`);
+  }
+
+  /**
+   * Generate asset versions for cache busting
+   */
+  async generateAssetVersions() {
+    logger.info('🔄 Generating asset versions for cache busting...');
+    
+    const assetPaths = [
+      path.join(this.staticDir, 'css'),
+      path.join(this.staticDir, 'js')
+    ];
+
+    for (const assetPath of assetPaths) {
+      if (await fs.pathExists(assetPath)) {
+        const files = await this.getAllFiles(assetPath);
+        
+        for (const file of files) {
+          const relativePath = path.relative(this.staticDir, file);
+          const content = await fs.readFile(file);
+          const hash = crypto.createHash('md5').update(content).digest('hex').substring(0, 8);
+          
+          // Store version hash
+          this.assetVersions[relativePath] = hash;
+        }
+      }
+    }
+
+    logger.info(`Asset versions generated for ${Object.keys(this.assetVersions).length} files`);
   }
 
   /**
@@ -929,6 +965,12 @@ class SiteBuilder {
       // Extract handle from URL like https://x.com/SanketBhat11 or @SanketBhat11
       const match = twitterUrl.match(/(?:x\.com\/|twitter\.com\/|@)([a-zA-Z0-9_]+)/);
       return match ? match[1] : twitterUrl.replace('@', '');
+    });
+
+    // Asset versioning helper for cache busting
+    this.handlebars.registerHelper('asset', (assetPath) => {
+      const version = this.assetVersions[assetPath];
+      return version ? `${assetPath}?v=${version}` : assetPath;
     });
   }
 

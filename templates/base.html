@@ -37,14 +37,14 @@
   
   <!-- Stylesheets -->
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="/css/custom.css">
+  <link rel="stylesheet" href="{{asset 'css/custom.css'}}">
   
   <!-- Performance Optimization Script -->
-  <script src="/js/performance.js" defer></script>
+  <script src="{{asset 'js/performance.js'}}" defer></script>
   
   <!-- Advanced Analytics Script -->
   {{#if analytics.googleAnalyticsId}}
-  <script src="/js/analytics.js" defer></script>
+  <script src="{{asset 'js/analytics.js'}}" defer></script>
   {{/if}}
   
   <!-- Math Support -->

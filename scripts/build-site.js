@@ -667,12 +667,12 @@ class SiteBuilder {
         pageTitle: category.name,
         categoryName: category.name,
         categoryDescription: category.description,
-        pagination: {
-          currentPage: 1,
-          totalPages: 1,
+        pagination: categoryPosts.length > 0 ? {
+          current: 1,
+          total: 1,
           hasNext: false,
           hasPrev: false
-        },
+        } : null,
         isEmpty: categoryPosts.length === 0
       });
       

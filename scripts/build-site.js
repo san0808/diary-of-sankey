@@ -707,7 +707,7 @@ class SiteBuilder {
       description: config.site.description,
       feed_url: `${config.site.url}/rss.xml`,
       site_url: config.site.url,
-      image_url: `${config.site.url}/favicon.ico`,
+      image_url: `${config.site.url}/images/logo.png`,
       author: config.author.name,
       managingEditor: config.author.email,
       webMaster: config.author.email,

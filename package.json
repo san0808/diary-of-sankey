@@ -29,7 +29,8 @@
     "perf-export": "node scripts/performance-monitor.js export",
     "perf-clear": "node scripts/performance-monitor.js clear",
     "sync:fast": "node scripts/notion-sync.js --concurrency 10",
-    "build:fast": "node scripts/build-site.js --incremental"
+    "build:fast": "node scripts/build-site.js --incremental",
+    "test:og": "node scripts/test-og-generation.js"
   },
   "keywords": [
     "blog",

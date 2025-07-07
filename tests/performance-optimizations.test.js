@@ -28,6 +28,11 @@ jest.mock('../config/site.config', () => ({
   author: {
     name: 'Test Author',
     email: 'test@example.com'
+  },
+  ogImages: {
+    enabled: false, // Disable for tests
+    generateFallbacks: false,
+    dimensions: { width: 1200, height: 630 }
   }
 }));
 

@@ -30,7 +30,9 @@
     "perf-clear": "node scripts/performance-monitor.js clear",
     "sync:fast": "node scripts/notion-sync.js --concurrency 10",
     "build:fast": "node scripts/build-site.js --incremental",
-    "test:og": "node scripts/test-og-generation.js"
+    "test:og": "node scripts/test-og-generation.js",
+    "test:og-integration": "TEST_OG_IMAGES=true jest tests/integration/og-image-integration.test.js",
+    "test:og-full": "TEST_OG_IMAGES=true npm run test:og-integration && npm run test:og"
   },
   "keywords": [
     "blog",

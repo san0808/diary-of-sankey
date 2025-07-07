@@ -16,9 +16,7 @@
   <meta property="og:description" content="{{#if description}}{{description}}{{else}}{{site.description}}{{/if}}" />
   <meta property="og:url" content="{{site.url}}{{#if canonicalPath}}{{canonicalPath}}{{else}}/{{/if}}" />
   <meta property="og:site_name" content="{{site.title}}" />
-  {{#if featuredImage}}
-  <meta property="og:image" content="{{site.url}}{{featuredImage}}" />
-  {{/if}}
+  <meta property="og:image" content="{{site.url}}{{#if featuredImage}}{{featuredImage}}{{else}}{{author.avatar}}{{/if}}" />
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -27,9 +25,7 @@
   {{#if author.social.twitter}}
   <meta name="twitter:creator" content="@{{twitterHandle author.social.twitter}}" />
   {{/if}}
-  {{#if featuredImage}}
-  <meta name="twitter:image" content="{{site.url}}{{featuredImage}}" />
-  {{/if}}
+  <meta name="twitter:image" content="{{site.url}}{{#if featuredImage}}{{featuredImage}}{{else}}{{author.avatar}}{{/if}}" />
   
   <!-- Favicon -->
   <link rel="icon" href="/images/logo.png" />

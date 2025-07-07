@@ -34,6 +34,11 @@ jest.mock('../config/site.config', () => ({
   },
   performance: {
     enableServiceWorker: false
+  },
+  ogImages: {
+    enabled: false, // Disable for tests
+    generateFallbacks: false,
+    dimensions: { width: 1200, height: 630 }
   }
 }));
 

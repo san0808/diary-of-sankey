@@ -82,6 +82,23 @@ module.exports = {
     imageSizes: [400, 800, 1200]
   },
 
+  // Open Graph (OG) image settings
+  ogImages: {
+    enabled: process.env.ENABLE_OG_IMAGES !== 'false',
+    generateFallbacks: process.env.GENERATE_OG_FALLBACKS !== 'false',
+    dimensions: {
+      width: 1200,
+      height: 630
+    },
+    fallbackToFeatured: true, // Use featured image if available, else generate
+    brandColors: {
+      primary: '#EA580C',      // Orange-600
+      background: '#FFF7ED',   // Orange-50
+      text: '#1F2937',         // Gray-800
+      textSecondary: '#6B7280' // Gray-500
+    }
+  },
+
   // Development settings
   development: {
     port: parseInt(process.env.DEV_PORT) || 3000,

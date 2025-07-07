@@ -42,7 +42,14 @@ jest.mock('../../config/site.config', () => ({
     enableCompression: true,
     enableMinification: true
   },
-  categories: {}
+  categories: {},
+  ogImages: {
+    enabled: process.env.TEST_OG_IMAGES === 'true', // Allow enabling for comprehensive tests
+    generateFallbacks: false,
+    dimensions: { width: 1200, height: 630 },
+    // Use a test-specific output directory to avoid conflicts
+    outputDir: process.env.TEST_OG_IMAGES === 'true' ? 'test-og-images' : undefined
+  }
 }));
 
 describe('Auto-Sync Workflow Integration', () => {

@@ -19,6 +19,8 @@ A modern, Notion-powered blog system that preserves beautiful design while provi
 - **Image Optimization**: Automatic image processing and optimization
 - **SEO Ready**: Automatic meta tags, sitemap, and RSS feed generation
 - **Minimalist Aesthetics**: Clean, professional styling for code blocks and callouts
+- **Auto OG Images**: Beautiful social media preview images generated automatically
+- **Auto-sync**: Scheduled content updates from Notion
 
 ## 🎨 Design Philosophy
 
@@ -245,3 +247,28 @@ MIT License - see LICENSE file for details
 ---
 
 **Happy Writing!** 📝 Experience the perfect blend of Notion's powerful editor and beautiful, minimalist blog design. 
+
+## 🖼️ Open Graph Images
+
+This blog automatically generates beautiful, branded Open Graph images for social media sharing!
+
+### Features
+- ✅ **1200x630px** - Perfect dimensions for all social platforms
+- ✅ **Branded design** - Matches your blog's aesthetic with custom colors
+- ✅ **Smart fallbacks** - Auto-generates for posts without featured images
+- ✅ **Category-specific** - Different designs for Blog, Research, and Math posts
+- ✅ **Performance optimized** - Only generates when needed, caches results
+
+### Testing OG Images
+```bash
+npm run test:og
+```
+
+This generates sample images so you can see how your social media previews will look!
+
+### What gets generated:
+- **Homepage** (`/og-images/default.png`) - For general site sharing
+- **Categories** (`/og-images/category-*.png`) - For blog section sharing  
+- **Posts** (`/og-images/post-*.png`) - For individual posts without featured images
+
+See `docs/OG_IMAGES_SETUP.md` for detailed configuration and customization options. 

@@ -8,6 +8,7 @@ const RSS = require('rss');
 const { parseISO, format } = require('date-fns');
 const logger = require('./utils/logger');
 const config = require('../config/site.config');
+const OGImageGenerator = require('./utils/og-image-generator');
 
 /**
  * Build cache for incremental builds
@@ -113,13 +114,17 @@ class SiteBuilder {
     this.pageCount = 0;
     this.buildCache = new BuildCache();
     
+    // Initialize OG image generator
+    this.ogGenerator = config.ogImages.enabled ? new OGImageGenerator(config) : null;
+    
     // Performance tracking
     this.performanceMetrics = {
       startTime: Date.now(),
       templatesLoaded: 0,
       pagesGenerated: 0,
       filesSkipped: 0,
-      cacheHits: 0
+      cacheHits: 0,
+      ogImagesGenerated: 0
     };
   }
 
@@ -140,6 +145,16 @@ class SiteBuilder {
       
       // Load content
       const content = await this.loadContent();
+      
+      // Initialize OG image generator
+      if (this.ogGenerator) {
+        await this.ogGenerator.initialize();
+      }
+      
+      // Generate OG images (before generating pages)
+      if (this.ogGenerator && config.ogImages.enabled) {
+        await this.generateOGImages(content);
+      }
       
       // Copy static assets (only if changed)
       await this.copyStaticAssetsIncremental();
@@ -172,6 +187,9 @@ class SiteBuilder {
       logger.info(`   Files skipped (cached): ${this.performanceMetrics.filesSkipped}`);
       logger.info(`   Cache hit rate: ${Math.round((this.performanceMetrics.cacheHits / (this.performanceMetrics.pagesGenerated + this.performanceMetrics.filesSkipped)) * 100)}%`);
       logger.info(`   Templates loaded: ${this.performanceMetrics.templatesLoaded}`);
+      if (this.ogGenerator) {
+        logger.info(`   OG images generated: ${this.performanceMetrics.ogImagesGenerated}`);
+      }
       
       buildTimer();
       
@@ -421,6 +439,52 @@ class SiteBuilder {
   }
 
   /**
+   * Generate Open Graph images for all content
+   */
+  async generateOGImages(content) {
+    if (!this.ogGenerator) return;
+    
+    logger.info('🖼️  Generating Open Graph images...');
+    
+    try {
+      // Generate default OG image for homepage and fallbacks
+      await this.ogGenerator.generateDefaultImage();
+      this.performanceMetrics.ogImagesGenerated++;
+      
+      // Generate category OG images
+      const categories = [
+        { name: 'Blog', slug: 'blog', description: 'Personal thoughts and technical insights' },
+        { name: 'Research Notes', slug: 'research-notes', description: 'Deep dives into research papers and technical concepts' },
+        { name: 'Math', slug: 'math', description: 'Mathematical explorations and explanations' }
+      ];
+      
+      for (const category of categories) {
+        await this.ogGenerator.generateCategoryImage(category);
+        this.performanceMetrics.ogImagesGenerated++;
+      }
+      
+      // Generate post-specific OG images (only for posts without featured images or if generating fallbacks is enabled)
+      const postsNeedingOG = content.publishedPosts.filter(post => 
+        !post.featuredImage || config.ogImages.generateFallbacks
+      );
+      
+      for (const post of postsNeedingOG) {
+        await this.ogGenerator.generatePostImage(post);
+        this.performanceMetrics.ogImagesGenerated++;
+      }
+      
+      // Clean up old OG images
+      const currentSlugs = content.publishedPosts.map(post => post.slug);
+      await this.ogGenerator.cleanupOldImages(currentSlugs);
+      
+      logger.success(`Generated ${this.performanceMetrics.ogImagesGenerated} OG images`);
+      
+    } catch (error) {
+      logger.error('Failed to generate OG images', error);
+    }
+  }
+
+  /**
    * Generate the home page
    */
   async generateHomePage(content) {
@@ -446,7 +510,8 @@ class SiteBuilder {
       content: homeContent,
       isHome: true,
       pageTitle: null, // Use site title only
-      description: config.site.description
+      description: config.site.description,
+      ogImage: this.ogGenerator ? '/og-images/default.png' : null
     });
     
     await fs.writeFile(path.join(this.outputDir, 'index.html'), homeHtml);
@@ -535,6 +600,14 @@ class SiteBuilder {
         ? (extraData.categoryName || 'Blog')
         : `${extraData.categoryName || 'Blog'} - Page ${page}`;
       
+      // Determine OG image for category pages
+      let categoryOgImage;
+      if (this.ogGenerator && extraData.categoryFilter) {
+        categoryOgImage = `/og-images/category-${extraData.categoryFilter}.png`;
+      } else if (this.ogGenerator) {
+        categoryOgImage = '/og-images/default.png';
+      }
+
       const blogHtml = this.templates.base({
         ...this.getBaseTemplateData(),
         content: blogContent,
@@ -543,7 +616,8 @@ class SiteBuilder {
         isMath: extraData.categoryFilter === 'math',
         pageTitle,
         description: extraData.categoryDescription || `${config.site.title} blog posts`,
-        canonicalPath: page === 1 ? urlPath : `${urlPath}/page/${page}`
+        canonicalPath: page === 1 ? urlPath : `${urlPath}/page/${page}`,
+        ogImage: categoryOgImage
       });
       
       // Determine output file path
@@ -613,6 +687,13 @@ class SiteBuilder {
       nextPost
     });
     
+    // Determine OG image to use
+    let ogImage = fullPost.featuredImage;
+    if (!ogImage && this.ogGenerator && config.ogImages.enabled) {
+      // Use generated OG image if no featured image
+      ogImage = `/og-images/post-${fullPost.slug}.png`;
+    }
+
     const postHtml = this.templates.base({
       ...this.getBaseTemplateData(),
       content: postContent,
@@ -622,6 +703,7 @@ class SiteBuilder {
       description: fullPost.excerpt || `${fullPost.title} - ${config.site.title}`,
       canonicalPath: `/${this.slugify(fullPost.category)}/${fullPost.slug}`,
       featuredImage: fullPost.featuredImage,
+      ogImage: ogImage, // Dedicated OG image field
       publishDate: fullPost.publishDate,
       lastEditedTime: fullPost.lastEditedTime
     });
@@ -676,16 +758,17 @@ class SiteBuilder {
         isEmpty: categoryPosts.length === 0
       });
       
-      const categoryHtml = this.templates.base({
-        ...this.getBaseTemplateData(),
-        content: categoryContent,
-        isBlog: category.slug === 'blog',
-        isResearch: category.slug === 'research-notes', 
-        isMath: category.slug === 'math',
-        pageTitle: category.name,
-        description: category.description,
-        canonicalPath: `/${category.slug}`
-      });
+          const categoryHtml = this.templates.base({
+      ...this.getBaseTemplateData(),
+      content: categoryContent,
+      isBlog: category.slug === 'blog',
+      isResearch: category.slug === 'research-notes', 
+      isMath: category.slug === 'math',
+      pageTitle: category.name,
+      description: category.description,
+      canonicalPath: `/${category.slug}`,
+      ogImage: this.ogGenerator ? `/og-images/category-${category.slug}.png` : null
+    });
       
       const categoryIndexPath = path.join(categoryDir, 'index.html');
       await fs.writeFile(categoryIndexPath, categoryHtml);
@@ -858,6 +941,11 @@ class SiteBuilder {
    * Setup Handlebars helpers
    */
   setupHandlebarsHelpers() {
+    // Twitter handle helper
+    this.handlebars.registerHelper('twitterHandle', function(handle) {
+      if (!handle) return '';
+      return handle.startsWith('@') ? handle.substring(1) : handle;
+    });
     // Date formatting helper
     this.handlebars.registerHelper('formatDate', (date, formatStr = 'MMMM d, yyyy') => {
       if (!date) return '';

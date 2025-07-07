@@ -48,7 +48,7 @@ class OGImageGenerator {
       const contentOverlay = await this.createPostContentOverlay(post);
       
       // Combine background and content
-      const finalImage = await background
+      await background
         .composite([{ input: contentOverlay, top: 0, left: 0 }])
         .png()
         .toFile(outputPath);

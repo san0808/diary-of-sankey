@@ -32,6 +32,9 @@
             <!-- Title -->
             <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
               {{title}}
+              {{#if (and ../showDraftBadges (eq status 'Draft'))}}
+              <span class="ml-2 inline-block text-[10px] px-2 py-0.5 rounded font-mono" style="background: #fff4e5; color: #9a3412; border: 1px solid #fdba74;">DRAFT</span>
+              {{/if}}
             </h2>
             
             <!-- Excerpt -->
@@ -45,6 +48,9 @@
             <div class="flex items-center flex-wrap gap-3 mb-3">
               <!-- Category Badge -->
               <span class="category-badge">{{category}}</span>
+              {{#if (eq status 'Scheduled')}}
+              <span class="inline-block text-[10px] px-2 py-0.5 rounded font-mono" style="background: #ffedd5; color: #9a3412; border: 1px solid #fdba74;">SCHEDULED</span>
+              {{/if}}
               
               <!-- Reading Time & Word Count -->
               <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">

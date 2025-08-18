@@ -158,18 +158,15 @@
           href="/"
           class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isHome}}font-semibold{{/if}}"
         >Home</a>
+        
+        {{#if categories.length}}
+        {{#each categories}}
         <a
-          href="/blog"
-          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isBlog}}font-semibold{{/if}}"
-        >Blog</a>
-        <a
-          href="/research-notes"
-          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isResearch}}font-semibold{{/if}}"
-        >Research Notes</a>
-        <a
-          href="/math"
-          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if isMath}}font-semibold{{/if}}"
-        >Math</a>
+          href="/{{slug}}"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 {{#if (eq ../activeCategorySlug slug)}}font-semibold{{/if}}"
+        >{{name}}</a>
+        {{/each}}
+        {{/if}}
       </div>
     </div>
   </nav>

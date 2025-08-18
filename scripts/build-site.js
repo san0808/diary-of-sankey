@@ -592,7 +592,14 @@ class SiteBuilder {
       : content.publishedPosts;
 
     // Main blog page (all posts)
-    await this.generateBlogListingPage(postsForMainListing, '/blog', 'index.html', content);
+    const blogDir = path.join(this.outputDir, 'blog');
+    await fs.ensureDir(blogDir);
+    await this.generateBlogListingPage(
+      postsForMainListing,
+      '/blog',
+      path.join(blogDir, 'index.html'),
+      content
+    );
     
     // Category pages - ensure categories is iterable
     const categories = Array.isArray(content.categories) ? content.categories : [];
@@ -828,10 +835,13 @@ class SiteBuilder {
       ];
     }
     
+    const includeDraftsForCategories = process.env.DEV_INCLUDE_DRAFTS === 'true';
+    const sourcePostsForCategories = includeDraftsForCategories
+      ? [...content.publishedPosts, ...(content.draftPosts || [])]
+      : content.publishedPosts;
+
     for (const category of allCategories) {
-      const categoryPosts = content.publishedPosts.filter(post => 
-        post.category === category.name
-      );
+      const categoryPosts = sourcePostsForCategories.filter(post => post.category === category.name);
       
       const categoryDir = path.join(this.outputDir, category.slug);
       await fs.ensureDir(categoryDir);
@@ -844,6 +854,7 @@ class SiteBuilder {
         pageTitle: category.name,
         categoryName: category.name,
         categoryDescription: category.description,
+        showDraftBadges: includeDraftsForCategories,
         pagination: {
           currentPage: 1,
           totalPages: 1,

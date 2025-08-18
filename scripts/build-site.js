@@ -192,6 +192,9 @@ class SiteBuilder {
         await this.generateSitemapIncremental(content);
       }
       
+      // Always (re)generate robots.txt
+      await this.generateRobotsTxtIncremental();
+      
       // Update build cache
       this.buildCache.cache.lastBuild = Date.now();
       this.buildCache.saveCache();
@@ -494,6 +497,54 @@ class SiteBuilder {
     await this.generateSitemap(content);
     this.buildCache.markFileGenerated(sitemapPath, contentPaths);
     this.performanceMetrics.pagesGenerated++;
+  }
+
+  /**
+   * Generate robots.txt (incremental)
+   */
+  async generateRobotsTxtIncremental() {
+    const robotsPath = path.join(this.outputDir, 'robots.txt');
+    const configPath = path.join(process.cwd(), 'config', 'site.config.js');
+    const sitemapOutPath = path.join(this.outputDir, 'sitemap.xml');
+
+    if (this.force || this.buildCache.shouldRebuildFile(robotsPath, [configPath, sitemapOutPath])) {
+      await this.generateRobotsTxt();
+      this.buildCache.markFileGenerated(robotsPath, [configPath, sitemapOutPath]);
+      this.performanceMetrics.pagesGenerated++;
+    } else {
+      this.performanceMetrics.filesSkipped++;
+      this.performanceMetrics.cacheHits++;
+    }
+  }
+
+  /**
+   * Generate robots.txt
+   */
+  async generateRobotsTxt() {
+    logger.info('Generating robots.txt...');
+
+    const isNoIndex = process.env.NO_INDEX === 'true' ||
+      (process.env.VERCEL === '1' && process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production');
+
+    const lines = [];
+    if (isNoIndex) {
+      lines.push('User-agent: *');
+      lines.push('Disallow: /');
+    } else {
+      lines.push('User-agent: *');
+      lines.push('Allow: /');
+      // Example exclusions (keep empty for now)
+      // lines.push('Disallow: /assets/');
+    }
+
+    if (config.content.enableSitemap && config.site && config.site.url) {
+      lines.push('');
+      lines.push(`Sitemap: ${config.site.url.replace(/\/$/, '')}/sitemap.xml`);
+    }
+
+    const out = lines.join('\n') + '\n';
+    await fs.writeFile(path.join(this.outputDir, 'robots.txt'), out, 'utf8');
+    logger.success('robots.txt generated');
   }
 
   /**

@@ -11,6 +11,18 @@
   </div>
 </div>
 {{/if}}
+{{#if (and isDevDraftPreview (eq status 'Draft'))}}
+<div class="bg-yellow-100 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+  <div class="flex items-center">
+    <span class="text-yellow-700 mr-2">📝</span>
+    <div>
+      <p class="font-serif text-yellow-800">
+        <strong>Draft Preview</strong> - This post is in Draft and visible only in local development.
+      </p>
+    </div>
+  </div>
+</div>
+{{/if}}
 {{/if}}
 
 <article class="blog-post mt-2">

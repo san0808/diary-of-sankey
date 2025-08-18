@@ -116,15 +116,11 @@
     <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm {{#unless categoryName}}font-semibold{{/unless}}">
       All Posts
     </a>
-    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Blog')}}font-semibold{{/if}}">
-      Blog (2)
+    {{#each categories}}
+    <a href="/{{slug}}" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq ../categoryName name)}}font-semibold{{/if}}">
+      {{name}} ({{count}})
     </a>
-    <a href="/research-notes" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Research Notes')}}font-semibold{{/if}}">
-      Research Notes (0)
-    </a>
-    <a href="/math" class="category-button inline-block px-4 py-2 font-serif text-sm {{#if (eq categoryName 'Math')}}font-semibold{{/if}}">
-      Math (0)
-    </a>
+    {{/each}}
   </div>
 </div>
 {{/if}}

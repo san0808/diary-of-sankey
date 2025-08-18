@@ -569,7 +569,9 @@ class SiteBuilder {
       isHome: true,
       pageTitle: null, // Use site title only
       description: config.site.description,
-      ogImage: this.ogGenerator ? '/og-images/default.png' : null
+      ogImage: this.ogGenerator ? '/og-images/default.png' : null,
+      categories: this.getSortedCategoriesNav(content.categories || []),
+      activeCategorySlug: null
     });
     
     await fs.writeFile(path.join(this.outputDir, 'index.html'), homeHtml);
@@ -590,7 +592,14 @@ class SiteBuilder {
       : content.publishedPosts;
 
     // Main blog page (all posts)
-    await this.generateBlogListingPage(postsForMainListing, '/blog', 'index.html', content);
+    const blogDir = path.join(this.outputDir, 'blog');
+    await fs.ensureDir(blogDir);
+    await this.generateBlogListingPage(
+      postsForMainListing,
+      '/blog',
+      path.join(blogDir, 'index.html'),
+      content
+    );
     
     // Category pages - ensure categories is iterable
     const categories = Array.isArray(content.categories) ? content.categories : [];
@@ -657,7 +666,7 @@ class SiteBuilder {
       const blogContent = this.templates['blog-list']({
         posts: pagePosts,
         pagination,
-        categories: content.categories || [],
+        categories: this.getSortedCategoriesNav(content.categories || []),
         popularTags: (content.tags || []).slice(0, 10),
         showCategoriesFilter: true,
         showTagsCloud: true,
@@ -686,7 +695,9 @@ class SiteBuilder {
         pageTitle,
         description: extraData.categoryDescription || `${config.site.title} blog posts`,
         canonicalPath: page === 1 ? urlPath : `${urlPath}/page/${page}`,
-        ogImage: categoryOgImage
+        ogImage: categoryOgImage,
+        categories: this.getSortedCategoriesNav(content.categories || []),
+        activeCategorySlug: extraData.categoryFilter || (urlPath === '/blog' ? 'blog' : null)
       });
       
       // Determine output file path
@@ -717,8 +728,9 @@ class SiteBuilder {
     ];
     let generatedCount = 0;
     
+    const categoriesNav = this.getSortedCategoriesNav(content.categories || []);
     for (const post of allPosts) {
-      await this.generatePostPage(post, allPosts);
+      await this.generatePostPage(post, allPosts, categoriesNav);
       generatedCount++;
     }
     
@@ -728,7 +740,7 @@ class SiteBuilder {
   /**
    * Generate a single post page
    */
-  async generatePostPage(post, allPosts) {
+  async generatePostPage(post, allPosts, categoriesNav = []) {
     // Load full post content
     const postContentPath = path.join(this.contentDir, 'posts', `${post.slug}.json`);
     
@@ -779,7 +791,9 @@ class SiteBuilder {
       featuredImage: fullPost.featuredImage,
       ogImage: ogImage, // Dedicated OG image field
       publishDate: fullPost.publishDate,
-      lastEditedTime: fullPost.lastEditedTime
+      lastEditedTime: fullPost.lastEditedTime,
+      categories: categoriesNav,
+      activeCategorySlug: this.slugify(fullPost.category)
     });
     
     // Create category directory based on category slug
@@ -800,17 +814,37 @@ class SiteBuilder {
   async generateCategoryPages(content) {
     logger.info('Generating category pages...');
     
-    // Define all expected categories (including empty ones)
-    const allCategories = [
-      { name: 'Blog', slug: 'blog', description: 'Personal thoughts and technical insights' },
-      { name: 'Research Notes', slug: 'research-notes', description: 'Research findings and academic notes' },
-      { name: 'Math', slug: 'math', description: 'Mathematical explorations and problem solving' }
-    ];
+    // Use dynamic categories from content, fallback to config if empty
+    let allCategories = [];
+    if (Array.isArray(content.categories) && content.categories.length > 0) {
+      const sorted = content.categories
+        .slice()
+        .sort((a, b) => {
+          if (a.slug === 'blog') return -1;
+          if (b.slug === 'blog') return 1;
+          return a.name.localeCompare(b.name);
+        });
+      allCategories = sorted.map(cat => ({
+        name: cat.name,
+        slug: cat.slug,
+        description: this.getCategoryDescription(cat.name)
+      }));
+    } else {
+      // Fallback to config categories if no dynamic categories found
+      allCategories = [
+        { name: 'Blog', slug: 'blog', description: 'Personal thoughts and technical insights' },
+        { name: 'Research Notes', slug: 'research-notes', description: 'Research findings and academic notes' },
+        { name: 'Math', slug: 'math', description: 'Mathematical explorations and problem solving' }
+      ];
+    }
     
+    const includeDraftsForCategories = process.env.DEV_INCLUDE_DRAFTS === 'true';
+    const sourcePostsForCategories = includeDraftsForCategories
+      ? [...content.publishedPosts, ...(content.draftPosts || [])]
+      : content.publishedPosts;
+
     for (const category of allCategories) {
-      const categoryPosts = content.publishedPosts.filter(post => 
-        post.category === category.name
-      );
+      const categoryPosts = sourcePostsForCategories.filter(post => post.category === category.name);
       
       const categoryDir = path.join(this.outputDir, category.slug);
       await fs.ensureDir(categoryDir);
@@ -823,6 +857,7 @@ class SiteBuilder {
         pageTitle: category.name,
         categoryName: category.name,
         categoryDescription: category.description,
+        showDraftBadges: includeDraftsForCategories,
         pagination: {
           currentPage: 1,
           totalPages: 1,
@@ -832,7 +867,15 @@ class SiteBuilder {
         isEmpty: categoryPosts.length === 0
       });
       
-          const categoryHtml = this.templates.base({
+      // Prepare sorted categories for nav consistency
+      const sortedCategoriesNav = (content.categories || [])
+        .slice()
+        .sort((a, b) => {
+          if (a.slug === 'blog') return -1;
+          if (b.slug === 'blog') return 1;
+          return a.name.localeCompare(b.name);
+        });
+      const categoryHtml = this.templates.base({
       ...this.getBaseTemplateData(),
       content: categoryContent,
       isBlog: category.slug === 'blog',
@@ -841,7 +884,9 @@ class SiteBuilder {
       pageTitle: category.name,
       description: category.description,
       canonicalPath: `/${category.slug}`,
-      ogImage: this.ogGenerator ? `/og-images/category-${category.slug}.png` : null
+      ogImage: this.ogGenerator ? `/og-images/category-${category.slug}.png` : null,
+      categories: sortedCategoriesNav,
+      activeCategorySlug: category.slug
     });
       
       const categoryIndexPath = path.join(categoryDir, 'index.html');
@@ -1013,6 +1058,21 @@ class SiteBuilder {
   }
 
   /**
+   * Sort categories for consistent nav rendering
+   */
+  getSortedCategoriesNav(rawCategories) {
+    const categories = Array.isArray(rawCategories) ? rawCategories.slice() : [];
+    // Ensure objects have name and slug; filter out invalids
+    const valid = categories.filter(cat => cat && typeof cat === 'object' && cat.name && cat.slug);
+    valid.sort((a, b) => {
+      if (a.slug === 'blog') return -1;
+      if (b.slug === 'blog') return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return valid;
+  }
+
+  /**
    * Setup Handlebars helpers
    */
   setupHandlebarsHelpers() {
@@ -1112,6 +1172,21 @@ class SiteBuilder {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim('-');
+  }
+
+  /**
+   * Get category description from config or return default
+   */
+  getCategoryDescription(categoryName) {
+       // Map category names to descriptions
+    const descriptions = {
+      'Blog': 'Personal thoughts and technical insights',
+      'Research Notes': 'Research findings and academic notes', 
+      'Math': 'Mathematical explorations and problem solving',
+      'Technology': 'Technology insights and technical tutorials'
+    };
+    
+    return descriptions[categoryName] || `${categoryName} posts and articles`;
   }
 }
 

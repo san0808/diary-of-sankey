@@ -20,7 +20,8 @@ class DevServer {
     this.buildQueue = [];
     // Include drafts during local development builds unless explicitly disabled
     if (!process.env.DEV_INCLUDE_DRAFTS) {
-      process.env.DEV_INCLUDE_DRAFTS = 'true';
+      // Default to false if not set in .env
+      process.env.DEV_INCLUDE_DRAFTS = 'false';
     }
   }
 
@@ -56,8 +57,8 @@ class DevServer {
     console.log(chalk.yellow('🔨 Building site...'));
 
     try {
-      // Run the build script
-      await execAsync('node scripts/build-site.js');
+      // Run the build script, passing through current env (respects .env)
+      await execAsync('node scripts/build-site.js', { env: { ...process.env } });
       console.log(chalk.green('✅ Site built successfully'));
       
       // Process any queued builds

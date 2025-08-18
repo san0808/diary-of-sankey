@@ -18,6 +18,10 @@ class DevServer {
     this.publicDir = path.join(process.cwd(), config.build.outputDir);
     this.isBuilding = false;
     this.buildQueue = [];
+    // Include drafts during local development builds unless explicitly disabled
+    if (!process.env.DEV_INCLUDE_DRAFTS) {
+      process.env.DEV_INCLUDE_DRAFTS = 'true';
+    }
   }
 
   async start() {

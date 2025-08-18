@@ -570,7 +570,7 @@ class SiteBuilder {
       pageTitle: null, // Use site title only
       description: config.site.description,
       ogImage: this.ogGenerator ? '/og-images/default.png' : null,
-      categories: content.categories || [],
+      categories: this.getSortedCategoriesNav(content.categories || []),
       activeCategorySlug: null
     });
     
@@ -666,7 +666,7 @@ class SiteBuilder {
       const blogContent = this.templates['blog-list']({
         posts: pagePosts,
         pagination,
-        categories: content.categories || [],
+        categories: this.getSortedCategoriesNav(content.categories || []),
         popularTags: (content.tags || []).slice(0, 10),
         showCategoriesFilter: true,
         showTagsCloud: true,
@@ -696,7 +696,7 @@ class SiteBuilder {
         description: extraData.categoryDescription || `${config.site.title} blog posts`,
         canonicalPath: page === 1 ? urlPath : `${urlPath}/page/${page}`,
         ogImage: categoryOgImage,
-        categories: content.categories || [],
+        categories: this.getSortedCategoriesNav(content.categories || []),
         activeCategorySlug: extraData.categoryFilter || (urlPath === '/blog' ? 'blog' : null)
       });
       
@@ -1052,6 +1052,21 @@ class SiteBuilder {
       enableServiceWorker: config.performance.enableServiceWorker,
       isDevDraftPreview: process.env.DEV_INCLUDE_DRAFTS === 'true'
     };
+  }
+
+  /**
+   * Sort categories for consistent nav rendering
+   */
+  getSortedCategoriesNav(rawCategories) {
+    const categories = Array.isArray(rawCategories) ? rawCategories.slice() : [];
+    // Ensure objects have name and slug; filter out invalids
+    const valid = categories.filter(cat => cat && typeof cat === 'object' && cat.name && cat.slug);
+    valid.sort((a, b) => {
+      if (a.slug === 'blog') return -1;
+      if (b.slug === 'blog') return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return valid;
   }
 
   /**

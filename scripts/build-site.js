@@ -728,8 +728,9 @@ class SiteBuilder {
     ];
     let generatedCount = 0;
     
+    const categoriesNav = this.getSortedCategoriesNav(content.categories || []);
     for (const post of allPosts) {
-      await this.generatePostPage(post, allPosts);
+      await this.generatePostPage(post, allPosts, categoriesNav);
       generatedCount++;
     }
     
@@ -739,7 +740,7 @@ class SiteBuilder {
   /**
    * Generate a single post page
    */
-  async generatePostPage(post, allPosts) {
+  async generatePostPage(post, allPosts, categoriesNav = []) {
     // Load full post content
     const postContentPath = path.join(this.contentDir, 'posts', `${post.slug}.json`);
     
@@ -790,7 +791,9 @@ class SiteBuilder {
       featuredImage: fullPost.featuredImage,
       ogImage: ogImage, // Dedicated OG image field
       publishDate: fullPost.publishDate,
-      lastEditedTime: fullPost.lastEditedTime
+      lastEditedTime: fullPost.lastEditedTime,
+      categories: categoriesNav,
+      activeCategorySlug: this.slugify(fullPost.category)
     });
     
     // Create category directory based on category slug

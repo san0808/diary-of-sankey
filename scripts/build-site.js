@@ -18,6 +18,15 @@ class BuildCache {
     this.cacheFile = path.join(process.cwd(), '.build-cache.json');
     this.cache = this.loadCache();
   }
+  
+  /**
+   * Sort posts array for listing pages with newest first
+   */
+  sortPostsForListing(posts) {
+    return posts
+      .slice()
+      .sort((a, b) => new Date(b.publishDate || b.lastEditedTime || 0) - new Date(a.publishDate || a.lastEditedTime || 0));
+  }
 
   loadCache() {
     try {
@@ -126,6 +135,15 @@ class SiteBuilder {
       cacheHits: 0,
       ogImagesGenerated: 0
     };
+  }
+
+  /**
+   * Sort posts array for listing pages with newest first
+   */
+  sortPostsForListing(posts) {
+    return posts
+      .slice()
+      .sort((a, b) => new Date(b.publishDate || b.lastEditedTime || 0) - new Date(a.publishDate || a.lastEditedTime || 0));
   }
 
   /**
@@ -309,6 +327,46 @@ class SiteBuilder {
       } catch (error) {
         logger.warn('Failed to parse tags index, using empty array', error);
         content.tags = [];
+      }
+    }
+    
+    // In development, optionally include drafts by scanning post files
+    if (process.env.DEV_INCLUDE_DRAFTS === 'true') {
+      try {
+        const postsDir = path.join(this.contentDir, 'posts');
+        if (await fs.pathExists(postsDir)) {
+          const files = await fs.readdir(postsDir);
+          const draftSummaries = [];
+          for (const file of files) {
+            if (!file.endsWith('.json')) continue;
+            try {
+              const postJson = await fs.readJson(path.join(postsDir, file));
+              if (postJson && postJson.status === 'Draft') {
+                draftSummaries.push({
+                  id: postJson.id,
+                  title: postJson.title,
+                  slug: postJson.slug,
+                  excerpt: postJson.excerpt,
+                  publishDate: postJson.publishDate,
+                  category: postJson.category,
+                  tags: postJson.tags,
+                  readingTime: postJson.readingTime,
+                  wordCount: postJson.wordCount,
+                  featured: postJson.featured,
+                  status: postJson.status
+                });
+              }
+            } catch (error) {
+              logger.debug(`Skipping unreadable post file: ${file}`);
+            }
+          }
+          content.draftPosts = draftSummaries;
+          if (draftSummaries.length > 0) {
+            logger.info(`Included ${draftSummaries.length} draft posts for local development`);
+          }
+        }
+      } catch (error) {
+        logger.warn('Failed to load draft posts for development preview', error);
       }
     }
     
@@ -524,8 +582,15 @@ class SiteBuilder {
   async generateBlogPages(content) {
     logger.info('Generating blog pages...');
     
+    const includeDrafts = process.env.DEV_INCLUDE_DRAFTS === 'true';
+
+    // Prepare main blog list: published + optional drafts (dev only)
+    const postsForMainListing = includeDrafts
+      ? this.sortPostsForListing([...content.publishedPosts, ...content.draftPosts])
+      : content.publishedPosts;
+
     // Main blog page (all posts)
-    await this.generateBlogListingPage(content.publishedPosts, '/blog', 'index.html', content);
+    await this.generateBlogListingPage(postsForMainListing, '/blog', 'index.html', content);
     
     // Category pages - ensure categories is iterable
     const categories = Array.isArray(content.categories) ? content.categories : [];
@@ -542,8 +607,11 @@ class SiteBuilder {
         continue;
       }
       
-      const categoryPosts = content.publishedPosts.filter(post => 
-        post.category === category.name
+      const categoryPosts = this.sortPostsForListing(
+        (includeDrafts
+          ? [...content.publishedPosts, ...content.draftPosts]
+          : content.publishedPosts
+        ).filter(post => post.category === category.name)
       );
       
       const categoryDir = path.join(this.outputDir, category.slug);
@@ -593,6 +661,7 @@ class SiteBuilder {
         popularTags: (content.tags || []).slice(0, 10),
         showCategoriesFilter: true,
         showTagsCloud: true,
+        showDraftBadges: process.env.DEV_INCLUDE_DRAFTS === 'true',
         ...extraData
       });
       
@@ -640,7 +709,12 @@ class SiteBuilder {
   async generatePostPages(content) {
     logger.info('Generating post pages...');
     
-    const allPosts = [...content.publishedPosts, ...content.scheduledPosts];
+    const includeDrafts = process.env.DEV_INCLUDE_DRAFTS === 'true';
+    const allPosts = [
+      ...content.publishedPosts,
+      ...content.scheduledPosts,
+      ...(includeDrafts ? content.draftPosts : [])
+    ];
     let generatedCount = 0;
     
     for (const post of allPosts) {
@@ -933,7 +1007,8 @@ class SiteBuilder {
       analytics: config.services.analytics,
       currentYear: new Date().getFullYear(),
       enableSearch: config.content.enableSearch,
-      enableServiceWorker: config.performance.enableServiceWorker
+      enableServiceWorker: config.performance.enableServiceWorker,
+      isDevDraftPreview: process.env.DEV_INCLUDE_DRAFTS === 'true'
     };
   }
 
@@ -1009,6 +1084,12 @@ class SiteBuilder {
     this.handlebars.registerHelper('or', (...args) => {
       args.pop(); // Remove options object
       return args.some(Boolean);
+    });
+    
+    // And helper
+    this.handlebars.registerHelper('and', (...args) => {
+      const opts = args.pop();
+      return args.every(Boolean);
     });
     
     // Twitter handle helper - extracts handle from Twitter URL

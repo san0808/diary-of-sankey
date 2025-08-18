@@ -569,7 +569,9 @@ class SiteBuilder {
       isHome: true,
       pageTitle: null, // Use site title only
       description: config.site.description,
-      ogImage: this.ogGenerator ? '/og-images/default.png' : null
+      ogImage: this.ogGenerator ? '/og-images/default.png' : null,
+      categories: content.categories || [],
+      activeCategorySlug: null
     });
     
     await fs.writeFile(path.join(this.outputDir, 'index.html'), homeHtml);
@@ -686,7 +688,9 @@ class SiteBuilder {
         pageTitle,
         description: extraData.categoryDescription || `${config.site.title} blog posts`,
         canonicalPath: page === 1 ? urlPath : `${urlPath}/page/${page}`,
-        ogImage: categoryOgImage
+        ogImage: categoryOgImage,
+        categories: content.categories || [],
+        activeCategorySlug: extraData.categoryFilter || (urlPath === '/blog' ? 'blog' : null)
       });
       
       // Determine output file path
@@ -800,12 +804,29 @@ class SiteBuilder {
   async generateCategoryPages(content) {
     logger.info('Generating category pages...');
     
-    // Define all expected categories (including empty ones)
-    const allCategories = [
-      { name: 'Blog', slug: 'blog', description: 'Personal thoughts and technical insights' },
-      { name: 'Research Notes', slug: 'research-notes', description: 'Research findings and academic notes' },
-      { name: 'Math', slug: 'math', description: 'Mathematical explorations and problem solving' }
-    ];
+    // Use dynamic categories from content, fallback to config if empty
+    let allCategories = [];
+    if (Array.isArray(content.categories) && content.categories.length > 0) {
+      const sorted = content.categories
+        .slice()
+        .sort((a, b) => {
+          if (a.slug === 'blog') return -1;
+          if (b.slug === 'blog') return 1;
+          return a.name.localeCompare(b.name);
+        });
+      allCategories = sorted.map(cat => ({
+        name: cat.name,
+        slug: cat.slug,
+        description: this.getCategoryDescription(cat.name)
+      }));
+    } else {
+      // Fallback to config categories if no dynamic categories found
+      allCategories = [
+        { name: 'Blog', slug: 'blog', description: 'Personal thoughts and technical insights' },
+        { name: 'Research Notes', slug: 'research-notes', description: 'Research findings and academic notes' },
+        { name: 'Math', slug: 'math', description: 'Mathematical explorations and problem solving' }
+      ];
+    }
     
     for (const category of allCategories) {
       const categoryPosts = content.publishedPosts.filter(post => 
@@ -832,7 +853,15 @@ class SiteBuilder {
         isEmpty: categoryPosts.length === 0
       });
       
-          const categoryHtml = this.templates.base({
+      // Prepare sorted categories for nav consistency
+      const sortedCategoriesNav = (content.categories || [])
+        .slice()
+        .sort((a, b) => {
+          if (a.slug === 'blog') return -1;
+          if (b.slug === 'blog') return 1;
+          return a.name.localeCompare(b.name);
+        });
+      const categoryHtml = this.templates.base({
       ...this.getBaseTemplateData(),
       content: categoryContent,
       isBlog: category.slug === 'blog',
@@ -841,7 +870,9 @@ class SiteBuilder {
       pageTitle: category.name,
       description: category.description,
       canonicalPath: `/${category.slug}`,
-      ogImage: this.ogGenerator ? `/og-images/category-${category.slug}.png` : null
+      ogImage: this.ogGenerator ? `/og-images/category-${category.slug}.png` : null,
+      categories: sortedCategoriesNav,
+      activeCategorySlug: category.slug
     });
       
       const categoryIndexPath = path.join(categoryDir, 'index.html');
@@ -1112,6 +1143,21 @@ class SiteBuilder {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim('-');
+  }
+
+  /**
+   * Get category description from config or return default
+   */
+  getCategoryDescription(categoryName) {
+       // Map category names to descriptions
+    const descriptions = {
+      'Blog': 'Personal thoughts and technical insights',
+      'Research Notes': 'Research findings and academic notes', 
+      'Math': 'Mathematical explorations and problem solving',
+      'Technology': 'Technology insights and technical tutorials'
+    };
+    
+    return descriptions[categoryName] || `${categoryName} posts and articles`;
   }
 }
 

@@ -385,3 +385,52 @@ nav a:hover {
   border-radius: 8px;
   transform: translateY(-1px);
 } 
+
+/* ===== MERMAID DIAGRAMS ===== */
+
+/* Borderless Mermaid */
+.mermaid-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;            /* or 8px if you want a little breathing room */
+  overflow-x: auto;
+}
+.mermaid-card .mermaid {
+  background: transparent;
+  padding: 0;
+}
+.mermaid-card .mermaid svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+/* Keep the toggle visually light */
+.mermaid-toggle {
+  appearance: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--warm-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+.mermaid-toggle:hover {
+  color: var(--warm-text-link);
+  background: var(--warm-bg-hover);
+  border-color: var(--warm-border-light);
+}
+.mermaid-toggle:focus-visible {
+  outline: 2px solid var(--warm-border-accent);
+  outline-offset: 2px;
+}
+.mermaid-toggle::after {
+  content: '▾';
+  margin-left: 6px;
+  font-size: 11px;
+  color: inherit;
+}
+.mermaid-toggle[aria-expanded="true"]::after {
+  content: '▴';
+}
+.mermaid-source pre { margin-top: 8px; }

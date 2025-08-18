@@ -494,6 +494,21 @@ class ContentProcessor {
    * @returns {string} HTML for code block
    */
   renderCodeBlock(code, language) {
+    // Special handling for Mermaid diagrams
+    if (language && String(language).toLowerCase() === 'mermaid') {
+      // Provide a rendered diagram by default with an optional source toggle
+      const escaped = this.escapeHtml(code);
+      return `<div class="my-6 mermaid-card" data-mermaid>
+  <div class="mermaid">${code}</div>
+  <div class="mt-2 text-right">
+    <button type="button" class="mermaid-toggle" aria-expanded="false">View Mermaid source</button>
+  </div>
+  <div class="mermaid-source" style="display:none">
+    <pre class="bg-gray-50 border border-gray-200 text-gray-800 p-4 rounded-lg overflow-x-auto font-mono text-sm leading-relaxed"><code class="language-mermaid">${escaped}</code></pre>
+  </div>
+</div>`;
+    }
+
     // Minimalist code block inspired by Notion
     return `<div class="my-6">
       <pre class="bg-gray-50 border border-gray-200 text-gray-800 p-4 rounded-lg overflow-x-auto font-mono text-sm leading-relaxed"><code class="language-${language}">${this.escapeHtml(code)}</code></pre>

@@ -134,7 +134,12 @@ class DevServer {
       if (fs.existsSync(postPath)) {
         res.sendFile(postPath);
       } else {
-        res.status(404).send(`Post not found: ${category}/${slug}`);
+        const notFoundPath = path.join(this.publicDir, '404.html');
+        if (fs.existsSync(notFoundPath)) {
+          res.status(404).sendFile(notFoundPath);
+        } else {
+          res.status(404).send(`Post not found: ${category}/${slug}`);
+        }
       }
     });
 
@@ -142,7 +147,10 @@ class DevServer {
     this.app.get('*', (req, res) => {
       // If it's a file request (has extension), try to serve it
       if (path.extname(req.path)) {
-        return res.status(404).send('File not found');
+        const notFoundPath = path.join(this.publicDir, '404.html');
+        return fs.existsSync(notFoundPath)
+          ? res.status(404).sendFile(notFoundPath)
+          : res.status(404).send('File not found');
       }
       
       // For directory requests, try to serve index.html from that directory
@@ -150,13 +158,18 @@ class DevServer {
       if (fs.existsSync(requestedPath)) {
         res.sendFile(requestedPath);
       } else {
-        // Fallback to main index.html
-        const indexPath = path.join(this.publicDir, 'index.html');
-        if (fs.existsSync(indexPath)) {
-          res.sendFile(indexPath);
+        // Serve custom 404 if present, else fallback to main index
+        const notFoundPath = path.join(this.publicDir, '404.html');
+        if (fs.existsSync(notFoundPath)) {
+          res.status(404).sendFile(notFoundPath);
         } else {
-          res.status(404).send('Site not built yet. Building...');
-          this.buildSite();
+          const indexPath = path.join(this.publicDir, 'index.html');
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send('Site not built yet. Building...');
+            this.buildSite();
+          }
         }
       }
     });

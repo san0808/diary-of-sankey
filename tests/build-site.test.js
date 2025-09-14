@@ -117,12 +117,14 @@ describe('SiteBuilder', () => {
     it('should load all template files', async () => {
       await siteBuilder.loadTemplates();
 
-      expect(fs.readFile).toHaveBeenCalledTimes(4); // base, home, blog-list, blog-post
-      expect(mockHandlebars.compile).toHaveBeenCalledTimes(4);
+      // base, home, blog-list, blog-post, 404
+      expect(fs.readFile).toHaveBeenCalledTimes(5);
+      expect(mockHandlebars.compile).toHaveBeenCalledTimes(5);
       expect(siteBuilder.templates).toHaveProperty('base');
       expect(siteBuilder.templates).toHaveProperty('home');
       expect(siteBuilder.templates).toHaveProperty('blog-list');
       expect(siteBuilder.templates).toHaveProperty('blog-post');
+      expect(siteBuilder.templates).toHaveProperty('404');
     });
 
     it('should warn about missing templates', async () => {

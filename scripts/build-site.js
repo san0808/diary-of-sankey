@@ -9,6 +9,7 @@ const { parseISO, format } = require('date-fns');
 const logger = require('./utils/logger');
 const config = require('../config/site.config');
 const OGImageGenerator = require('./utils/og-image-generator');
+const { buildSemanticIndex } = require('./utils/semantic-index');
 
 /**
  * Build cache for incremental builds
@@ -182,6 +183,8 @@ class SiteBuilder {
       await this.generateBlogPages(content);
       await this.generatePostPages(content);
       await this.generateCategoryPages(content);
+      await this.generateSearchIndex(content);
+      await this.generate404Page(content);
       
       // Generate feeds and sitemaps (only if content changed)
       if (config.content.enableRss) {
@@ -190,6 +193,15 @@ class SiteBuilder {
       
       if (config.content.enableSitemap) {
         await this.generateSitemapIncremental(content);
+      }
+
+      // Optional: semantic index for advanced 404 suggestions
+      if (process.env.ENABLE_SEMANTIC_404 === 'true') {
+        try {
+          await buildSemanticIndex(content.publishedPosts, path.join(this.outputDir, 'js'));
+        } catch (e) {
+          logger.warn('Semantic index generation failed', e);
+        }
       }
       
       // Always (re)generate robots.txt
@@ -242,7 +254,8 @@ class SiteBuilder {
       'base.html',
       'home.html', 
       'blog-list.html',
-      'blog-post.html'
+      'blog-post.html',
+      '404.html'
     ];
 
     let templatesChanged = false;
@@ -375,6 +388,28 @@ class SiteBuilder {
     
     logger.success(`Loaded ${content.publishedPosts.length} published posts, ${content.scheduledPosts.length} scheduled posts`);
     return content;
+  }
+
+  /**
+   * Emit compact search index for client-side 404 suggestions
+   */
+  async generateSearchIndex(content) {
+    try {
+      const outDir = path.join(this.outputDir, 'js');
+      await fs.ensureDir(outDir);
+      const items = (content.publishedPosts || []).map(p => ({
+        slug: p.slug,
+        categorySlug: this.slugify(p.category),
+        title: p.title,
+        tokens: (p.title || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').split(/\s+/).filter(Boolean),
+        tags: Array.isArray(p.tags) ? p.tags.map(t => t.toLowerCase()) : [],
+        excerpt: (p.excerpt || '').slice(0, 140)
+      }));
+      await fs.writeJson(path.join(outDir, 'search-index.json'), { items }, { spaces: 0 });
+      this.performanceMetrics.pagesGenerated++;
+    } catch (err) {
+      logger.warn('Failed to generate search index', err);
+    }
   }
 
   /**
@@ -947,6 +982,37 @@ class SiteBuilder {
     }
     
     logger.success('Category pages generated');
+  }
+
+  /**
+   * Generate 404 page using base template
+   */
+  async generate404Page(content) {
+    try {
+      const templatePath = path.join(this.templatesDir, '404.html');
+      if (!await fs.pathExists(templatePath)) {
+        return; // Skip if template missing
+      }
+      const notFoundContent = this.templates['404']
+        ? this.templates['404']({})
+        : await fs.readFile(templatePath, 'utf8');
+
+      const pageHtml = this.templates.base({
+        ...this.getBaseTemplateData(),
+        content: typeof notFoundContent === 'string' ? notFoundContent : '',
+        pageTitle: 'Page Not Found',
+        description: 'We could not find the page you were looking for',
+        canonicalPath: '/404',
+        ogImage: this.ogGenerator ? '/og-images/default.png' : null,
+        categories: this.getSortedCategoriesNav(content.categories || []),
+        activeCategorySlug: null
+      });
+
+      await fs.writeFile(path.join(this.outputDir, '404.html'), pageHtml);
+      this.performanceMetrics.pagesGenerated++;
+    } catch (error) {
+      logger.warn('Failed to generate 404 page', error);
+    }
   }
 
   /**

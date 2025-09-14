@@ -29,17 +29,23 @@ class PreviewServer {
     // Serve static files from public directory
     this.app.use(express.static(this.publicDir));
 
-    // Handle SPA routing - serve index.html for non-file requests
+    // Handle SPA routing - serve index.html for non-file requests, 404 on misses
     this.app.get('*', (req, res) => {
       // If it's a file request (has extension), try to serve it
       if (path.extname(req.path)) {
-        return res.status(404).send('File not found');
+        const notFoundPath = path.join(this.publicDir, '404.html');
+        return fs.existsSync(notFoundPath)
+          ? res.status(404).sendFile(notFoundPath)
+          : res.status(404).send('File not found');
       }
       
-      // For all other requests, serve index.html
+      // For all other requests, serve index.html if path is a known directory; otherwise 404
       const indexPath = path.join(this.publicDir, 'index.html');
+      const notFoundPath = path.join(this.publicDir, '404.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
+      } else if (fs.existsSync(notFoundPath)) {
+        res.status(404).sendFile(notFoundPath);
       } else {
         res.status(404).send('Index file not found');
       }

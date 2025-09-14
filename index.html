@@ -89,18 +89,19 @@
           href="/"
           class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 "
         >Home</a>
+        
         <a
-          href="/blog"
-          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 font-semibold"
-        >Blog</a>
+          href="/technology"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 "
+        >Technology</a>
         <a
           href="/research-notes"
           class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 "
         >Research Notes</a>
         <a
-          href="/math"
-          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 "
-        >Math</a>
+          href="/blog"
+          class="relative after:content-[''] after:absolute after:w-0 after:h-[2px] after:bg-black after:bottom-[-4px] after:left-0 hover:after:w-full after:transition-all after:duration-300 font-semibold"
+        >Blog</a>
       </div>
     </div>
   </nav>
@@ -116,6 +117,49 @@
   </div>
 
   <div class="space-y-4">
+    <article class="blog-card group">
+      <a href="/technology/how-cursor-indexes-your-code-so-fast-hint-its-not-magic-its-a-tree" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              Jul 4
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              How Cursor Indexes Your Code So Fast (Hint: It&#x27;s Not Magic, It&#x27;s a Tree!)
+            </h2>
+            
+            <!-- Excerpt -->
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              Let&#x27;s talk about a common scenario. You&#x27;re deep in the zone, coding away in your IDE. You&#x27;re renaming files, refactoring...
+            </p>
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">Technology</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>5 min read</span>
+                <span>822 words</span>
+              </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="post-tag">ai</span>
+              <span class="post-tag">backend</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </article>
     <article class="blog-card group">
       <a href="/research-notes/lessons-from-commitchronicle-for-commitcraft" class="block">
         <div class="flex gap-6 items-start">
@@ -146,7 +190,7 @@
               <!-- Reading Time & Word Count -->
               <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
                 <span>3 min read</span>
-                <span>531 words</span>
+                <span>538 words</span>
               </div>
             </div>
             
@@ -190,7 +234,7 @@
               <!-- Reading Time & Word Count -->
               <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
                 <span>3 min read</span>
-                <span>432 words</span>
+                <span>450 words</span>
               </div>
             </div>
             
@@ -233,13 +277,102 @@
               <!-- Reading Time & Word Count -->
               <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
                 <span>3 min read</span>
-                <span>453 words</span>
+                <span>457 words</span>
               </div>
             </div>
             
             <!-- Tags -->
             <div class="flex flex-wrap gap-2">
               <span class="post-tag">tutorial</span>
+              <span class="post-tag">productivity</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </article>
+    <article class="blog-card group">
+      <a href="/technology/how-twitters-recommendation-algorithm-actually-works-the-real-time-machine-learning-pipeline-that-serves-500m-daily-users" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              How Twitter&#x27;s Recommendation Algorithm Actually Works (The Real-Time Machine Learning Pipeline That Serves 500M Daily Users)
+              <span class="ml-2 inline-block text-[10px] px-2 py-0.5 rounded font-mono" style="background: #fff4e5; color: #9a3412; border: 1px solid #fdba74;">DRAFT</span>
+            </h2>
+            
+            <!-- Excerpt -->
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              Picture this: You open Twitter (sorry, X), and within milliseconds, you&#x27;re served a perfectly curated feed of tweets tha...
+            </p>
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">Technology</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>12 min read</span>
+                <span>2183 words</span>
+              </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="post-tag">machine-learning</span>
+              <span class="post-tag">ai</span>
+              <span class="post-tag">graph</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </article>
+    <article class="blog-card group">
+      <a href="/technology/why-your-docker-builds-are-slow-and-how-layer-caching-really-works" class="block">
+        <div class="flex gap-6 items-start">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-24 pt-1">
+            <time class="text-sm font-serif" style="color: var(--warm-text-muted);">
+              
+            </time>
+          </div>
+          
+          <!-- Content Column -->
+          <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <h2 class="text-lg font-serif mb-2 group-hover:underline underline-offset-4 transition-all duration-150" style="color: var(--warm-text-primary);">
+              Why Your Docker Builds Are Slow (And How Layer Caching Really Works)
+              <span class="ml-2 inline-block text-[10px] px-2 py-0.5 rounded font-mono" style="background: #fff4e5; color: #9a3412; border: 1px solid #fdba74;">DRAFT</span>
+            </h2>
+            
+            <!-- Excerpt -->
+            <p class="text-sm font-serif mb-3 leading-relaxed" style="color: var(--warm-text-secondary);">
+              Picture this: You&#x27;re in the middle of a coding session. You make a tiny one-line change to your app, rebuild your Docker...
+            </p>
+            
+            <!-- Metadata Row -->
+            <div class="flex items-center flex-wrap gap-3 mb-3">
+              <!-- Category Badge -->
+              <span class="category-badge">Technology</span>
+              
+              <!-- Reading Time & Word Count -->
+              <div class="flex items-center gap-3 text-xs" style="color: var(--warm-text-muted);">
+                <span>6 min read</span>
+                <span>1248 words</span>
+              </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="post-tag">docker</span>
               <span class="post-tag">productivity</span>
             </div>
           </div>
@@ -257,14 +390,14 @@
     <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm font-semibold">
       All Posts
     </a>
-    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm ">
-      Blog (2)
+    <a href="/technology" class="category-button inline-block px-4 py-2 font-serif text-sm ">
+      Technology (1)
     </a>
     <a href="/research-notes" class="category-button inline-block px-4 py-2 font-serif text-sm ">
-      Research Notes (0)
+      Research Notes (1)
     </a>
-    <a href="/math" class="category-button inline-block px-4 py-2 font-serif text-sm ">
-      Math (0)
+    <a href="/blog" class="category-button inline-block px-4 py-2 font-serif text-sm ">
+      Blog (2)
     </a>
   </div>
 </div>
@@ -272,17 +405,20 @@
 <div class="mt-8 pt-8 border-t border-gray-200">
   <h3 class="text-lg font-serif mb-4">Popular Tags</h3>
   <div class="flex flex-wrap gap-2">
+    <a href="/tag/ai" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
+      ai (2)
+    </a>
     <a href="/tag/git" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
       git (2)
     </a>
     <a href="/tag/productivity" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
       productivity (2)
     </a>
+    <a href="/tag/backend" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
+      backend (1)
+    </a>
     <a href="/tag/machine-learning" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
       machine-learning (1)
-    </a>
-    <a href="/tag/ai" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
-      ai (1)
     </a>
     <a href="/tag/tutorial" class="inline-block bg-gray-100 px-2 py-1 rounded text-sm hover:bg-orange-200 transition-colors font-serif">
       tutorial (1)
